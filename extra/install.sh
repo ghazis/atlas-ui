@@ -1,22 +1,29 @@
 #!/bin/bash
 source /opt/gt/utils/common.sh
 
-cp ${SCRIPT_DIR}/atlas-webservice.service.example /usr/lib/systemd/system/atlas-webservice.service
+cd ${SCRIPT_DIR}
+RC=0
 
-mkdir -p /var/log/atlas-webservice/
+NAME=atlas
+USER=${NAME}svc
+GROUP=${USER}_sg
+REPO="ssh://git@code.genevatrading.com:7999/hive/atlas.git"
+
+TARGET_DIR=$(realpath "${SCRIPT_DIR}/../")
+
 mkdir -p /opt/gt/hive
-mkdir -p /home/atlassvc/
-chown atlassvc:atlassvc_sg /home/atlassvc
-chmod 700 /home/atlassvc
 
-ln -s /home/atlassvc/atlas /opt/gt/hive/atlas
+mkdir -p /var/log/${NAME}-webservice/
+chown ${USER} /var/log/${NAME}-webservice/
 
-chown atlassvc /var/log/atlas-webservice/
-chown atlassvc -R ${SCRIPT_DIR}/../ 
+RC=$((RC+$?))
 
-systemctl enable atlas-webservice
-systemctl start atlas-webservice
+ln -s ${TARGET_DIR} /opt/gt/hive/${NAME}
 
-[[ $? -ne 0 ]] && echo "Seems like we had a little issue starting the service" && exit 1
+cp ${SCRIPT_DIR}/${NAME}-webservice.service.example /usr/lib/systemd/system/${NAME}-webservice.service
+systemctl enable ${NAME}-webservice
+systemctl start ${NAME}-webservice
+RC=$((RC+$?))
 
-exit 0
+[[ ${RC} -ne 0 ]] && echo "Seems like we had a little issue starting the service"
+exit ${RC}

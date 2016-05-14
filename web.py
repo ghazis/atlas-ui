@@ -16,9 +16,11 @@ config = yaml.load(open('config.yaml', 'r'))
 
 lc = gtldap.ldap_client(config['user_dn'], config['user_pw'], server=config['ldap_server'])
 
-client = pymongo.MongoClient(config['mongo_server'],int(config.get('mongo_port', 27017)))
+client = pymongo.MongoClient(config['mongo_server'],int(config['mongo_port']))
 client.assets.authenticate(config['mongo_user'], config['mongo_pw'])
-db = client[config['mongo_assets_db']]
+client.salt.authenticate(config['mongo_user'], config['mongo_pw'])
+db = client.assets
+pillar_db = client.salt
 
 @app.route('/group/<group>')
 def get_group(group):
@@ -53,7 +55,7 @@ def serialize_dict(data,key=""):
     return new_data
 
 
-@app.route("/asset/<asset>")
+@app.route("/assets/<asset>")
 def get_asset(asset):
     serialize = request.args.get('serialize', False)
     output = request.args.get('output', 'json')
@@ -61,9 +63,11 @@ def get_asset(asset):
         serialize=True
     rex = re.compile("^{}(\.geneva-*trading.com)?".format(asset))
     asset = db.hosts.find_one({'hostname': rex})
+    pillar = pillar_db.pillar.find_one({'_id': rex})
     if asset:
         del asset['_id']
-        asset['slug'] = asset['id']
+        if pillar:
+            asset.update(pillar)
         if serialize:
             asset=serialize_dict(asset)
     if 'yaml' in output:
@@ -82,14 +86,20 @@ def get_asset(asset):
 @app.route("/assets/")
 def get_assets():
     assets = []
+    pillars = {}
     serialize = request.args.get('serialize', False)
     output = request.args.get('output', 'json')
     if 'kv' in output:
         serialize=True
     results = db.hosts.find({})
+    for host in pillar_db.pillar.find({}):
+        pillars[host['_id']] = host
+
     for x in results:
         del x['_id']
-        x['slug'] = x['id']
+        if x.get('hostname', '') in pillars:
+            x.update(pillars[x['hostname']])
+
         if serialize:
             x=serialize_dict(x)
         assets.append(x)
@@ -107,4 +117,4 @@ def get_assets():
 
 
 if __name__ == '__main__':
-    app.run(debug=True,port=30101,host="127.0.0.1")
+    app.run(debug=True,port=int(config['port']),host="127.0.0.1")
