@@ -1,0 +1,9 @@
+user_dn: "CN=AD Bind Service Account,OU=ServiceAccounts,OU=GENEVATRADING,DC=genevatrading,DC=com"
+user_pw: "secret"
+ldap_server: "genevatrading.com"
+
+mongo_server: "localhost"
+mongo_port: 2707
+mongo_user: "assets_reader"
+mongo_pw: "secret"
+mongo_assets_db: "assets"
