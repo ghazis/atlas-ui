@@ -8,6 +8,7 @@ import re
 import json
 import pymongo
 import types
+import logging
 import datetime
 
 app = Flask(__name__)
@@ -22,12 +23,12 @@ client.salt.authenticate(config['mongo_user'], config['mongo_pw'])
 db = client.assets
 pillar_db = client.salt
 
-@app.route('/group/<group>')
+@app.route('/groups/<group>')
 def get_group(group):
     groups = lc.find_groups(group)
     return json.dumps(groups, indent=1), 200, {'Content-Type': 'application/json; charset=utf-8'}
 
-@app.route('/user/<username>')
+@app.route('/users/<username>')
 def get_user(username):
     users = lc.find_users(username)
     return json.dumps(users, indent=1), 200, {'Content-Type': 'application/json; charset=utf-8'}
@@ -83,6 +84,12 @@ def get_asset(asset):
     return json.dumps(asset, indent=1), 200, {'Content-Type': 'application/json; charset=utf-8'}
 
 
+@app.route("/networks/")
+def get_networks():
+    net_config = json.loads(open('networks.json', 'r').read())
+    return json.dumps(net_config, indent=1), 200, {'Content-Type': 'application/json; charset=utf-8'}
+
+
 @app.route("/assets/")
 def get_assets():
     assets = []
@@ -117,4 +124,6 @@ def get_assets():
 
 
 if __name__ == '__main__':
-    app.run(debug=True,port=int(config['port']),host="127.0.0.1")
+    logging.basicConfig()
+    logger = logging.getLogger()
+    app.run(debug=True,port=int(config['port']),host="0.0.0.0")
