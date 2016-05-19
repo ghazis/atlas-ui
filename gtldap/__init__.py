@@ -26,7 +26,7 @@ class ldap_client:
         self.ldap_conn = self.ldap.initialize('ldap://{}'.format(self.ldap_bind_server))
         self.ldap_conn.protocol_version = 3
         self.ldap.set_option(self.ldap.OPT_REFERRALS, 0)
-        self.ldap.set_option(self.ldap.OPT_SIZELIMIT, 2000)
+        self.ldap.set_option(self.ldap.OPT_SIZELIMIT, 4000)
         self.ldap.set_option(self.ldap.OPT_X_TLS_REQUIRE_CERT, self.ldap.OPT_X_TLS_NEVER)
 #        self.ldap_conn.start_tls_s()
         # grrr, bind doesn't seem to last. can fix?able
@@ -57,7 +57,7 @@ class ldap_client:
         users = {}
         groups = {}
 
-        for user in self.search('(&(objectclass=person)(sAMAccountName=*))', attrs=['mail', 'sAMAccountName']):
+        for user in self.search('(&(objectclass=person)(sAMAccountName=*))', attrs=['mail', 'sAMAccountName'], base_dn="OU=AllUsers,OU=GENEVATRADING,DC=genevatrading,DC=com"):
             attrs = user.get_attributes()
             if 'sAMAccountName' in attrs:
                 users[attrs['sAMAccountName'][0]] = user.get_dn()
