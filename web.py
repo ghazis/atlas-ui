@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from flask import Flask, request
+
 import gtldap
 import ldap
 import yaml
@@ -10,8 +11,8 @@ import pymongo
 import types
 import logging
 import datetime
-
 app = Flask(__name__)
+
 
 config = yaml.load(open('config.yaml', 'r'))
 
@@ -22,6 +23,8 @@ client.assets.authenticate(config['mongo_user'], config['mongo_pw'])
 client.salt.authenticate(config['mongo_user'], config['mongo_pw'])
 db = client.assets
 pillar_db = client.salt
+
+print(pillar_db.pillar)
 
 @app.route('/groups/<group>')
 def get_group(group):
@@ -63,8 +66,8 @@ def get_asset(asset):
     if 'csv' in output:
         serialize=True
     rex = re.compile("^{}(\.geneva-*trading.com)?".format(asset))
-    asset = db.hosts.find_one({'hostname': rex})
-    pillar = pillar_db.pillar.find_one({'_id': rex})
+    asset = db.hosts.find_one({'minion': rex})
+    pillar = pillar_db.pillar.find_one({'minion': rex})
     if asset:
         del asset['_id']
         if pillar:
@@ -104,8 +107,8 @@ def get_assets():
 
     for x in results:
         del x['_id']
-        if x.get('hostname', '') in pillars:
-            x.update(pillars[x['hostname']])
+        if x.get('minion', '') in pillars:
+            x.update(pillars[x['minion']])
 
         if serialize:
             x=serialize_dict(x)
@@ -121,6 +124,26 @@ def get_assets():
             kv_assets+='timestamp="{}"\n'.format(ts)
         return kv_assets
     return json.dumps(assets, indent=1), 200, {'Content-Type': 'application/json; charset=utf-8'}
+
+@app.route("/pillars/")
+def get_pillars():
+    pillars = {}
+    for host in pillar_db.pillar.find({}):
+        pillars[host['_id']] = host
+    return json.dumps(pillars, indent=1), 200, {'Content-Type': 'application/json; charset=utf-8'}
+        
+
+@app.route("/pillar/", methods=['POST'])
+def post_pillar():
+    params = request.form
+    host = params['host']
+    key = params['key']
+    val = params['val']
+    pillar_db.pillar.update(
+        {'_id': host},
+        {'$set': {key: val}},
+        upsert=False)
+    return host + "'s " + key + " has been set to " + val
 
 
 if __name__ == '__main__':
