@@ -18,10 +18,10 @@ config = yaml.load(open('config.yaml', 'r'))
 lc = gtldap.ldap_client(config['user_dn'], config['user_pw'], server=config['ldap_server'])
 
 client = pymongo.MongoClient(config['mongo_server'],int(config['mongo_port']))
-client.assets.authenticate(config['mongo_user'], config['mongo_pw'])
-client.salt.authenticate(config['mongo_user'], config['mongo_pw'])
-db = client.assets
-pillar_db = client.salt
+client[config['mongo_atlas_db']].authenticate(config['mongo_user'], config['mongo_pw'])
+client[config['mongo_salt_db']].authenticate(config['mongo_user'], config['mongo_pw'])
+db = client[config['mongo_atlas_db']]
+pillar_db = client[config['mongo_salt_db']]
 
 @app.route('/groups/<group>')
 def get_group(group):
