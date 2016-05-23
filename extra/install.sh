@@ -4,6 +4,9 @@ source /opt/gt/utils/common.sh
 cd ${SCRIPT_DIR}
 RC=0
 
+yum install openldap-devel -y
+pip install pyldap flask --upgrade
+
 NAME=atlas
 USER=${NAME}svc
 GROUP=${USER}_sg
