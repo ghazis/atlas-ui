@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from flask import Flask, request
+from flask.ext.cors import CORS
 
 import gtldap
 import ldap
@@ -12,7 +13,7 @@ import types
 import logging
 import datetime
 app = Flask(__name__)
-
+CORS(app)
 
 config = yaml.load(open('config.yaml', 'r'))
 
@@ -24,7 +25,6 @@ client.salt.authenticate(config['mongo_user'], config['mongo_pw'])
 db = client.assets
 pillar_db = client.salt
 
-print(pillar_db.pillar)
 
 @app.route('/groups/<group>')
 def get_group(group):
@@ -125,28 +125,31 @@ def get_assets():
         return kv_assets
     return json.dumps(assets, indent=1), 200, {'Content-Type': 'application/json; charset=utf-8'}
 
-@app.route("/pillars/")
+@app.route("/pillars/", methods=['GET', 'POST'])
 def get_pillars():
-    pillars = {}
-    for host in pillar_db.pillar.find({}):
-        pillars[host['_id']] = host
-    return json.dumps(pillars, indent=1), 200, {'Content-Type': 'application/json; charset=utf-8'}
-        
-
-@app.route("/pillar/", methods=['POST'])
-def post_pillar():
-    params = request.form
-    host = params['host']
-    key = params['key']
-    val = params['val']
-    pillar_db.pillar.update(
-        {'_id': host},
-        {'$set': {key: val}},
-        upsert=False)
-    return host + "'s " + key + " has been set to " + val
+    if request.method == 'GET':
+        pillars = {}
+        for host in pillar_db.pillar.find({}):
+            pillars[host['_id']] = host
+        return json.dumps(pillars, indent=1), 200, {'Content-Type': 'application/json; charset=utf-8'}
+    elif request.method == 'POST':
+        params = request.form
+        host = params['host']
+        key = params['key']
+        val = params['val']
+        try:
+            val = json.loads(params['val'])
+        except ValueError:
+            pass
+        pillar_db.pillar.update(
+            {'_id': host},
+            {'$set': {key: val}},
+            upsert=False)
+        return str(params)
 
 
 if __name__ == '__main__':
     logging.basicConfig()
     logger = logging.getLogger()
     app.run(debug=True,port=int(config['port']),host="0.0.0.0")
+
