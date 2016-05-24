@@ -216,7 +216,7 @@
                                             </td>
                                             <td ng-if="checkType(val)==='arr'">
                                             <div class="col-xs-6">
-                                                <select ng-model="selected" ng-change="collectElems(selected)">
+                                                <select ng-model="selected" ng-change="collectElems(selected)" size={{val.length+1}}>
                                                   <option ng-repeat="item in val track by $index" value="{&quot;{{item}}&quot;: {{$index}}}">{{item}}</option>
                                                 </select> 
                                             </form>
@@ -230,42 +230,16 @@
                                             </td>
                                             <td ng-if="checkType(val)==='str'">
                                             <div class="col-xs-6">
-   
-                                            </div>
-                                            </td>
-                                            <td ng-if="checkType(val)==='arr'">
-                                            <div class="col-xs-6 col-xs-offset-2">
-                                            <form ng-submit="updateVal(pillar._id, key, val, index, value, false, true)" method="POST">
-                                                <input class="form-control" type="hidden" name="host" value={{pillar._id}}>
-                                                <input class="form-control" type="hidden" name="key" value={{key}}>
-                                                <input class="form-control input-sm" id="inputsm" type="hidden" name="val" ng-model="value" value=>
-                                                <button type="submit" class="btn btn-primary btn-xs center-block">Remove</button>
-                                            </form>
-                                            </div>
-                                            </td>
-                                            <td ng-if="checkType(val)==='str'">
-                                            <div class="col-xs-6 col-xs-offset-3">
                                             <form ng-submit="updateVal(pillar._id, key, val, index, value, false, false)" method="POST">
                                                 <input class="form-control" type="hidden" name="host" value={{pillar._id}}>
                                                 <input class="form-control" type="hidden" name="key" value={{key}}>
+                                                <div class="col-xs-6">
                                                 <input class="form-control input-sm" id="inputsm" type="text" name="val" ng-model="value" value=>
+                                                </div>
+                                                <div class="col-xs-1">
                                                 <button type="submit" class="btn btn-primary btn-xs center-block">Change</button>
+                                                </div>
                                             </form>
-                                            </div>
-                                            </td>
-                                            <td ng-if="checkType(val)==='arr'">
-                                            <div class="col-xs-6 col-xs-offset-3">
-                                            <form ng-submit="updateVal(pillar._id, key, val, index, value, false, false)" method="POST">
-                                                <input class="form-control" type="hidden" name="host" value={{pillar._id}}>
-                                                <input class="form-control" type="hidden" name="key" value={{key}}>
-                                                <input class="form-control input-sm" id="inputsm" type="text" name="val" ng-model="value" value=>
-                                                <button type="submit" class="btn btn-primary btn-xs center-block">Change</button>
-                                            </form>
-                                            </div>
-                                            </td>
-                                            <td ng-if="checkType(val)==='str'">
-                                            <div class="col-xs-6">
-   
                                             </div>
                                             </td>
                                             <td ng-if="checkType(val)==='arr'">
@@ -273,8 +247,20 @@
                                             <form ng-submit="updateVal(pillar._id, key, val, index, value, true, false)" method="POST">
                                                 <input class="form-control" type="hidden" name="host" value={{pillar._id}}>
                                                 <input class="form-control" type="hidden" name="key" value={{key}}>
+                                                <div class="col-xs-6">
                                                 <input class="form-control input-sm" id="inputsm" type="text" name="val" ng-model="value" value=>
+                                                </div>
+                                                <div class="col-xs-1">
                                                 <button type="submit" class="btn btn-primary btn-xs center-block">Add</button>
+                                                </div>
+                                            </form>
+                                            </div>
+                                            <div class="col-xs-6 col-xs-offset-1">
+                                            <form ng-submit="updateVal(pillar._id, key, val, index, value, false, true)" method="POST">
+                                                <input class="form-control" type="hidden" name="host" value={{pillar._id}}>
+                                                <input class="form-control" type="hidden" name="key" value={{key}}>
+                                                <input class="form-control input-sm" id="inputsm" type="hidden" name="val" ng-model="value" value=>
+                                                <button type="submit" class="btn btn-primary btn-xs center-block">Remove</button>
                                             </form>
                                             </div>
                                             </td>
