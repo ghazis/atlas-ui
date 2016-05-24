@@ -21,7 +21,7 @@ lc = gtldap.ldap_client(config['user_dn'], config['user_pw'], server=config['lda
 
 client = pymongo.MongoClient(config['mongo_server'],int(config['mongo_port']))
 client[config['mongo_atlas_db']].authenticate(config['mongo_user'], config['mongo_pw'])
-client[['mongo_salt_db']].authenticate(config['mongo_user'], config['mongo_pw'])
+client[config['mongo_salt_db']].authenticate(config['mongo_user'], config['mongo_pw'])
 db = client[config['mongo_atlas_db']]
 pillar_db = client[config['mongo_salt_db']]
 
