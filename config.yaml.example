@@ -6,5 +6,7 @@ ldap_server: genevatrading.com
 
 mongo_server: localhost
 mongo_port: 27017
-mongo_user: some_user
+mongo_atlas_db: atlas-dev
+mongo_salt_db: salt-dev
+mongo_user: atlas_reader
 mongo_pw: some_password
