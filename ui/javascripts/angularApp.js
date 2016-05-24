@@ -86,7 +86,7 @@ function($scope, assets, $http, $window, $location) {
 		assets.this_asset = [];
 		assets.this_pillar = [];
 		id = $location.search()['id']
-    	$http.get('http://localhost:3001/assets/' + id).then(function(data) {
+    	$http.get('/api/assets/' + id).then(function(data) {
     		var data = data.data;
     		if(data === null){
     			data = {host: $location.search()['id'] + " NOT FOUND"};
@@ -119,7 +119,7 @@ function($scope, assets, $http, $window, $location) {
 	}
 
 	$scope.addAssets = function(){
-	    $http.get('http://localhost:3001/assets/').success(function(data) {
+	    $http.get('/api/assets/').success(function(data) {
 			for (var i=0;i<data.length;i++){
 				var asset_container = {};
 				for(var item in data[i]){
@@ -141,7 +141,7 @@ function($scope, assets, $http, $window, $location) {
 	};
 
 		$scope.addEditableAssets = function(){
-	    $http.get('http://localhost:3001/pillars/').success(function(data) {
+	    $http.get('/api/pillars/').success(function(data) {
 	    	var count = 0;
 			for(var item in data){
 				var pillar_container = {};
@@ -177,7 +177,7 @@ function($scope, assets, $http, $window, $location) {
 		}
         $http({
           method  : 'POST',
-          url     : 'http://localhost:3001/pillars/',
+          url     : '/api/pillars/',
           data    : $.param({
         	host: host,
         	key: key,
