@@ -161,9 +161,9 @@
             <div id="custom-page-wrapper">
 
                 <div class="col-lg-12" ng-repeat="asset in this_asset track by $index">
-                    <div class="panel panel-default">
+                    <div class="panel panel-default {{envClass}}">
                         <div class="panel-heading text-center">
-                            {{asset.host}}
+                            {{env}}{{asset.host}}
                         </div>
                         <!-- /.panel-heading -->
                         <div class="panel-body">
@@ -209,6 +209,7 @@
                                 <table class="table">
 
                                     <tbody ng-repeat="(key, val) in pillar">
+                                        {{key=key;""}}
                                         <tr ng-class='{"info":$index%2==0}'>
                                             <td>{{key}}</td>
                                             <td ng-if="checkType(val)==='str'">
@@ -216,8 +217,8 @@
                                             </td>
                                             <td ng-if="checkType(val)==='arr'">
                                             <div class="col-xs-6">
-                                                <select ng-model="selected" ng-change="collectElems(selected)" multiple>
-                                                  <option ng-repeat="item in val track by $index" value="{&quot;{{item}}&quot;: {{$index}}}">{{item}}</option>
+                                                <select ng-model="selected" ng-selected="none" ng-change="collectElems(selected)" multiple>
+                                                  <option ng-repeat="item in val track by $index" value="{{item}}, {{$index}}, {{key}}, {{val}}">{{item}}</option>
                                                 </select> 
                                             </form>
                                             </div>
@@ -231,7 +232,7 @@
                                             <td ng-if="checkType(val)==='str'">
                                             <div class="row">
                                                 <div class="col-xs-6">
-                                                    <form ng-submit="updateVal(pillar._id, key, val, index, value, false, false)" method="POST">
+                                                    <form ng-submit="updateVal(pillar._id, index, value, false, false)" method="POST">
                                                         <input class="form-control" type="hidden" name="host" value={{pillar._id}}>
                                                         <input class="form-control" type="hidden" name="key" value={{key}}>
                                                         <div class="col-xs-6">
@@ -247,7 +248,7 @@
                                             <td ng-if="checkType(val)==='arr'">
                                             <div class="row">
                                                 <div class="col-xs-6">
-                                                    <form ng-submit="updateVal(pillar._id, key, val, index, value, true, false)" method="POST">
+                                                    <form ng-submit="checkAdd(index, pillar._id, value, key, val)" method="POST">
                                                         <input class="form-control" type="hidden" name="host" value={{pillar._id}}>
                                                         <input class="form-control" type="hidden" name="key" value={{key}}>
                                                         <div class="col-xs-6">
@@ -261,13 +262,33 @@
                                             </div>
                                             <div class="row">
                                                 <div class="col-xs-6 col-xs-offset-1">
-                                                    <form ng-submit="updateVal(pillar._id, key, val, index, value, false, true)" method="POST">
+                                                    <form ng-submit="updateVal(pillar._id, index, removeVal, false, true)" method="POST">
                                                         <input class="form-control" type="hidden" name="host" value={{pillar._id}}>
                                                         <input class="form-control" type="hidden" name="key" value={{key}}>
                                                         <input class="form-control input-sm" id="inputsm" type="hidden" name="val" ng-model="value" value=>
                                                         <div class="col-xs-1 col-xs-offset-5">
-                                                            <button type="submit" class="btn btn-primary btn-xs center-block">Remove</button>
+                                                            <button type="button" ng-click="check(index, removeVal)" class="btn btn-primary btn-xs center-block" data-toggle="modal" id="rmvBtn" data-target="#myModal">Remove</button>
                                                         </div>
+                                                       <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                                                                        <div class="modal-dialog">
+                                                                            <div class="modal-content">
+                                                                                <div class="modal-header">
+                                                                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                                                                    <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+                                                                                </div>
+                                                                                <div class="modal-body">
+                                                                                    {{message}}
+                                                                                </div>
+                                                                                <div class="modal-footer">
+                                                                                    <button ng-if=disabled type="button" class="btn btn-default" data-dismiss="modal">Go Back</button>
+                                                                                    <button ng-if=enabled type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                                                                    <button ng-if=enabled type="submit" class="btn btn-primary">Confirm</button>
+                                                                                </div>
+                                                                            </div>
+                                                                            <!-- /.modal-content -->
+                                                                        </div>
+                                                                        <!-- /.modal-dialog -->
+                                                                    </div>
                                                     </form>
                                                 </div>
                                             </div>

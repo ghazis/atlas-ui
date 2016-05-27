@@ -66,6 +66,11 @@ function($scope, assets, $http, $window, $location) {
 	$scope.search = '';
 	$scope.assets = assets.assets;
 	$scope.this_id = $location.search()['id'];
+	$scope.thiskey = "";
+	$scope.thisval = [];
+	$scope.removeVal = "";
+	$scope.envClass = "";
+	$scope.env = "";
 
 	$scope.checkType = function(item) {
 		if(item === undefined){
@@ -110,9 +115,13 @@ function($scope, assets, $http, $window, $location) {
 				var id = assets.pillars[i]['_id'];
 				if (id === asset['host']){
 					for(var item in assets.pillars[i]){
+						if (item === "minion"){
+							continue;
+						}
 						pillar_container[item] = assets.pillars[i][item] || "N/A";
 					}
 					assets.getPillar(pillar_container);
+					$scope.envCheck(pillar_container);
 				}
 			}
 		});
@@ -157,31 +166,39 @@ function($scope, assets, $http, $window, $location) {
 	};
 
 	$scope.collectElems = function(item){
-		obj = JSON.parse(item);
-		$scope.index = obj[Object.keys(obj)[0]];
+		var arr = item[0].split(", ");
+		$scope.removeVal = arr[0];
+		$scope.index = arr[1];
+		$scope.thiskey = arr[2];
+		$scope.thisval = arr[3].replace('[','');
+		$scope.thisval = $scope.thisval.replace(']','');
+		$scope.thisval = $scope.thisval.replace('"','');
+		$scope.thisval = $scope.thisval.replace('","',',');
+		$scope.thisval = $scope.thisval.replace('"','').split(',');
+
 	}
 
-	$scope.updateVal = function(host, key, val, index, value, addFlag, removeFlag){
+	$scope.updateVal = function(host, index, value, addFlag, removeFlag){
 		if (addFlag === true) {
-			val.push(value);
+			$scope.thisval.push(value);
 		} else if (removeFlag === true) {
-			val.splice(index, 1);
+			$scope.thisval.splice(index, 1);
 		} else {
-			val[index] = value;
+			$scope.thisval[index] = value;
 		}
-		if (val.constructor == Array) {
-			val = angular.toJson(val);
-		} else if (val.constructor == String) {
-        	val = value;
-        	assets.this_pillar[0][key] = val;
+		if ($scope.thisval.constructor == Array) {
+			$scope.thisval = angular.toJson($scope.thisval);
+		} else if ($scope.thisval.constructor == String) {
+        	$scope.thisval = value;
+        	assets.this_pillar[0][$scope.thiskey] = $scope.thisval;
 		}
         $http({
           method  : 'POST',
           url     : '/api/pillars/',
           data    : $.param({
         	host: host,
-        	key: key,
-        	val: val
+        	key: $scope.thiskey,
+        	val: $scope.thisval
         }),
           headers : {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'} 
          })
@@ -190,7 +207,37 @@ function($scope, assets, $http, $window, $location) {
           }).error(function(data){
           	// console.log('did not work');
           })
-}
+	}
+
+	$scope.envCheck = function(asset) {
+		if (asset['env_tag'] == "prod"){
+			$scope.envClass = "panel-danger";
+			$scope.env = asset['env_tag'] + " - ";
+		}
+		$scope.env = asset['env_tag'] + " - ";
+	}
+
+	$scope.check = function(index, value){
+		if (index == undefined){
+			$scope.message = "Please make a selection first";
+			$scope.disabled = true;
+			$scope.enabled = false;
+		} else {
+			$scope.message = "Are you sure you want to remove " + value + "?";
+			$scope.disabled = false;
+			$scope.enabled = true;
+		}
+	}
+
+	$scope.checkAdd = function (index, host, value, key, val) {
+		if (index == undefined){
+		$scope.index = 0;
+		$scope.thiskey = key;
+		$scope.thisval = val;
+		$scope.updateVal(host, index, value, true, false);
+		}
+	}
+
 
 	//ensures assets are not added to table multiple times by pressing back button
 	if(get_counter === 0){
