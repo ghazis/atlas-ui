@@ -111,7 +111,7 @@
                             </thead>
                             <tbody>
                                 <tr ng-repeat="asset in assets | orderBy:sortType:sortReverse | filter:search">
-                                    <td class="text-center col-md-1">{{   }}<a href='#/asset?id={{asset.host}}'><button type="button" class="btn btn-primary btn-circle"><i class="fa fa-list"></i>
+                                    <td class="text-center col-md-1">{{   }}<a href='#/asset?id={{asset.hostname}}'><button type="button" class="btn btn-primary btn-circle"><i class="fa fa-list"></i>
                                 </button></a>
                                     <td>{{asset.host}}</td>
                                     <td>

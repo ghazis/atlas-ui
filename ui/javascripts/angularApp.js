@@ -88,9 +88,6 @@ function($scope, assets, $http, $window, $location) {
 		id = $location.search()['id']
     	$http.get('/api/assets/' + id).then(function(data) {
     		var data = data.data;
-    		if(data === null){
-    			data = {host: $location.search()['id'] + " NOT FOUND"};
-    		}
 			var asset_container = {};
 			for(var item in data){
 				asset_container[item] = data[item] || "N/A";
