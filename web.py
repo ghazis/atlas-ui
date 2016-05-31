@@ -12,6 +12,7 @@ import pymongo
 import types
 import logging
 import datetime
+from gtCommon import gtLogger
 app = Flask(__name__)
 CORS(app)
 
@@ -145,11 +146,11 @@ def get_pillars():
             {'_id': host},
             {'$set': {key: val}},
             upsert=False)
+	logger.info(host + "'s " + key + "has been modified and is now set to " + val)
         return str(params)
 
 
 if __name__ == '__main__':
-    logging.basicConfig()
-    logger = logging.getLogger()
+    logger = gtLogger(config['log_file'], debug=True).getLogger()
     app.run(debug=True,port=int(config['port']),host="0.0.0.0")
 
