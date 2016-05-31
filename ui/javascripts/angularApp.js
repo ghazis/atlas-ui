@@ -66,11 +66,6 @@ function($scope, assets, $http, $window, $location) {
 	$scope.search = '';
 	$scope.assets = assets.assets;
 	$scope.this_id = $location.search()['id'];
-	$scope.thiskey = "";
-	$scope.thisval = [];
-	$scope.removeVal = "";
-	$scope.envClass = "";
-	$scope.env = "";
 
 	$scope.checkType = function(item) {
 		if(item === undefined){
@@ -166,47 +161,52 @@ function($scope, assets, $http, $window, $location) {
 	};
 
 	$scope.collectElems = function(item){
-		var arr = item[0].split(", ");
-		$scope.removeVal = arr[0];
-		$scope.index = arr[1];
-		$scope.thiskey = arr[2];
-		$scope.thisval = arr[3].replace('[','');
-		$scope.thisval = $scope.thisval.replace(']','');
-		$scope.thisval = $scope.thisval.replace('"','');
-		$scope.thisval = $scope.thisval.replace('","',',');
-		$scope.thisval = $scope.thisval.replace('"','').split(',');
-
+		obj = JSON.parse(item);
+		$scope.index = obj[Object.keys(obj)[0]];
 	}
 
-	$scope.updateVal = function(host, index, value, addFlag, removeFlag){
+	$scope.grabModalVals = function(key, val) {
+		$scope.grabbed_key = key;
+		$scope.grabbed_val = val;
+	}
+
+	$scope.updateVal = function(host, key, val, index, value, addFlag, removeFlag){
 		if (addFlag === true) {
-			$scope.thisval.push(value);
+			val.push(value);
 		} else if (removeFlag === true) {
-			$scope.thisval.splice(index, 1);
+			val.splice(index, 1);
 		} else {
-			$scope.thisval[index] = value;
+			val[index] = value;
 		}
-		if ($scope.thisval.constructor == Array) {
-			$scope.thisval = angular.toJson($scope.thisval);
-		} else if ($scope.thisval.constructor == String) {
-        	$scope.thisval = value;
-        	assets.this_pillar[0][$scope.thiskey] = $scope.thisval;
+		if (val.constructor == Array) {
+			val = angular.toJson(val);
+		} else if (val.constructor == String) {
+        	val = value;
+        	assets.this_pillar[0][key] = val;
 		}
-        $http({
-          method  : 'POST',
-          url     : '/api/pillars/',
-          data    : $.param({
-        	host: host,
-        	key: $scope.thiskey,
-        	val: $scope.thisval
-        }),
-          headers : {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'} 
-         })
-          .success(function(data) {
-          	// console.log("worked");
-          }).error(function(data){
-          	// console.log('did not work');
-          })
+		$scope.updated_host = host;
+		$scope.updated_key = key;
+		$scope.updated_val = val;
+	}
+
+	$scope.saveChanges = function() {
+		if($scope.updated_host != undefined) {
+	        $http({
+	          method  : 'POST',
+	          url     : '/api/pillars/',
+	          data    : $.param({
+	        	host: $scope.updated_host,
+	        	key: $scope.updated_key,
+	        	val: $scope.updated_val
+	        }),
+	          headers : {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'} 
+	         })
+	          .success(function(data) {
+	          	// console.log("worked");
+	          }).error(function(data){
+	          	// console.log('did not work');
+	          })
+		}
 	}
 
 	$scope.envCheck = function(asset) {
@@ -216,28 +216,6 @@ function($scope, assets, $http, $window, $location) {
 		}
 		$scope.env = asset['env_tag'] + " - ";
 	}
-
-	$scope.check = function(index, value){
-		if (index == undefined){
-			$scope.message = "Please make a selection first";
-			$scope.disabled = true;
-			$scope.enabled = false;
-		} else {
-			$scope.message = "Are you sure you want to remove " + value + "?";
-			$scope.disabled = false;
-			$scope.enabled = true;
-		}
-	}
-
-	$scope.checkAdd = function (index, host, value, key, val) {
-		if (index == undefined){
-		$scope.index = 0;
-		$scope.thiskey = key;
-		$scope.thisval = val;
-		$scope.updateVal(host, index, value, true, false);
-		}
-	}
-
 
 	//ensures assets are not added to table multiple times by pressing back button
 	if(get_counter === 0){
