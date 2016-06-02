@@ -169,9 +169,13 @@ function($scope, assets, $http, $window, $location) {
 
 	$scope.updateVal = function(host, key, val, index, value, addFlag, removeFlag){
 		if (addFlag === true) {
-			val.push(value);
+			if (value!= undefined){
+				val.push(value);
+			}
 		} else if (removeFlag === true) {
-			val.splice(index, 1);
+			if (index!= undefined){
+				val.splice(index, 1);
+			}
 		} else {
 			val[index] = value;
 		}
