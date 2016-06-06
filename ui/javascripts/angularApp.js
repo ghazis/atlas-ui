@@ -75,7 +75,7 @@ function($scope, assets, $http, $window, $location) {
 	   		return "dict";
 		} else if (item.constructor === Array){
 	   		return "arr";
-		} else if (item.constructor === String || item.constructor === Number) {
+		} else if (item.constructor === String || item.constructor === Number || item.constructor === Boolean) {
 			return "str";
 		} else {
 			return "undefined";
