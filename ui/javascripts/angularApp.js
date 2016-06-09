@@ -19,16 +19,23 @@ function($stateProvider, $urlRouterProvider) {
 	  controller: 'MainCtrl',
 	  })
 
+	$stateProvider
+	  .state('jobs', {
+	  url: '/jobs?id',
+	  templateUrl: '/jobs.ejs',
+	  controller: 'MainCtrl',
+	  })
+
 	$urlRouterProvider.otherwise('home');
 
 }])
-
 assetsApp.factory('assets', function(){
 	var assets = {
         assets: [],
         pillars: [],
-        this_pillar: [],
         this_asset: [],
+        this_pillar: [],
+        this_job: [],
         ilo_ips: [],
     };
 
@@ -49,6 +56,10 @@ assetsApp.factory('assets', function(){
     	if (assets.this_pillar.length === 0){
     		assets.this_pillar.push(pillar);
     	}
+    }
+
+    assets.getJob = function(job) {
+    	assets.this_job.push(job);
     }
 
     return assets;
@@ -101,6 +112,8 @@ function($scope, assets, $http, $window, $location) {
 				}
 			}
 			assets.getAsset(asset_container);
+
+
 			asset = asset_container;
 			var pillar_container = {};
 			for (var i=0;i<assets.pillars.length;i++){
@@ -119,7 +132,28 @@ function($scope, assets, $http, $window, $location) {
 		});
 	}
 
-	$scope.addAssets = function(){
+	$scope.accessJobs = function(){
+		id = $location.search()['id']
+    	$http.get('/api/jobs/?id=' + id).then(function(data) {
+    		var data = data.data;
+			for (var i=0;i<data.length;i++){
+				var job_container = {};
+				for(var item in data[i]){
+					job_container[item] = data[i][item] || "N/A";
+				}
+				for(var elem in job_container['full_ret']){
+					if($scope.checkType(job_container['full_ret'][elem])==='dict'){
+						var to_be_pretty = job_container['full_ret'][elem];
+						pretty = JSON.stringify(to_be_pretty, null, 2);
+						job_container['full_ret'][elem] = pretty;
+					}
+				}
+				assets.getJob(job_container['full_ret']);
+			}
+		});
+	}
+
+	$scope.addAssets = function(id){
 	    $http.get('/api/assets/').success(function(data) {
 			for (var i=0;i<data.length;i++){
 				var asset_container = {};
@@ -141,7 +175,7 @@ function($scope, assets, $http, $window, $location) {
 	    });
 	};
 
-		$scope.addEditableAssets = function(){
+	$scope.addEditableAssets = function(){
 	    $http.get('/api/pillars/').success(function(data) {
 	    	var count = 0;
 			for(var item in data){
@@ -218,16 +252,27 @@ function($scope, assets, $http, $window, $location) {
 		$scope.env = asset['env_tag'] + " - ";
 	}
 
+	$scope.jobStatus = function(job){
+		if(job['success']===true){
+			return true;
+		}
+	}
+
 	//ensures assets are not added to table multiple times by pressing back button
 	if(get_counter === 0){
 		$window.onload = $scope.addAssets();
 		$window.onload = $scope.addEditableAssets();
 		get_counter += 1;
 	}
+
+
 	if($scope.this_id){
 		$scope.accessAsset($scope.this_id);
+		$scope.accessJobs();
 	}
 	$scope.this_asset = assets.this_asset;
 	$scope.this_pillar = assets.this_pillar;
+	$scope.this_job = assets.jobs;
+	$scope.this_job = assets.this_job;
 
 }]);

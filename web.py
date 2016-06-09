@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 from flask import Flask, request
 from flask.ext.cors import CORS
+from gtCommon import gtLogger
+from bson import json_util
 
 import gtldap
 import ldap
@@ -12,7 +14,6 @@ import pymongo
 import types
 import logging
 import datetime
-from gtCommon import gtLogger
 app = Flask(__name__)
 CORS(app)
 
@@ -149,6 +150,16 @@ def get_pillars():
 	logger.info(host + "'s " + key + "has been modified and is now set to " + val)
         return str(params)
 
+@app.route("/jobs/", methods=['GET'])
+def get_jobs():
+    if not request.args.get('id'):
+        return "No minion ID specified"
+    minion = request.args['id']
+    jobs = []
+    fun_filter = ['mine.update', 'saltutil.find_job', 'runner.jobs.lookup_jid', 'runner.jobs.list_job', 'grains.items', 'pillar.items', 'sys.list_functions']
+    for jobresult in pillar_db.saltReturns.find({'minion': minion, "$and": [{"fun": {"$nin": fun_filter}}]}).sort('{"jid": 1}', direction=pymongo.DESCENDING).limit(10):
+        jobs.append(jobresult)
+    return json.dumps(jobs, indent=1, default=json_util.default), 200, {'Content-Type': 'application/json; charset=utf-8'}
 
 if __name__ == '__main__':
     logger = gtLogger(config['log_file'], debug=True).getLogger()
