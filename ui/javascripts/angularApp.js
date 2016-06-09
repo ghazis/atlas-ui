@@ -133,6 +133,7 @@ function($scope, assets, $http, $window, $location) {
 	}
 
 	$scope.accessJobs = function(){
+		assets.this_job = [];
 		id = $location.search()['id']
     	$http.get('/api/jobs/?id=' + id).then(function(data) {
     		var data = data.data;
@@ -150,6 +151,7 @@ function($scope, assets, $http, $window, $location) {
 				}
 				assets.getJob(job_container['full_ret']);
 			}
+			console.log(assets.this_job);
 		});
 	}
 

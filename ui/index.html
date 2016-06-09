@@ -202,8 +202,10 @@
 
     <script type="text/ng-template" id="/asset.ejs">
         <div id="custom-page-wrapper" ng-repeat="asset in this_asset track by $index">
-            <a href='#/jobs?id={{asset.minion}}'><button type="button" class="btn btn-outline btn-primary btn-lg btn-block" ng-click="accessJobs()">View All Jobs</button></a>
-            <br></br>
+            <div class="col-lg-6 col-lg-offset-5">
+                <a href='#/jobs?id={{asset.minion}}'><button type="button" class="btn btn-outline btn-primary btn-md" ng-click="accessJobs()">View All Jobs</button></a>
+                <br></br>
+            </div>
             <div class="col-lg-6" ng-repeat="asset in this_asset track by $index">
                 <div class="panel panel-default {{envClass}}">
                     <div class="panel-heading text-center">
