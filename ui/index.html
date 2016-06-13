@@ -202,14 +202,19 @@
 
     <script type="text/ng-template" id="/asset.ejs">
         <div id="custom-page-wrapper" ng-repeat="asset in this_asset track by $index">
+                <div class="panel panel-default {{envClass}}">
+                    <div class="panel-heading text-center">
+                        {{env}}{{asset.host}}
+                    </div>
+                </div>
             <div class="col-lg-6 col-lg-offset-5">
                 <a href='#/jobs?id={{asset.minion}}'><button type="button" class="btn btn-outline btn-primary btn-md" ng-click="accessJobs()">View All Jobs</button></a>
                 <br></br>
             </div>
             <div class="col-lg-6" ng-repeat="asset in this_asset track by $index">
-                <div class="panel panel-default {{envClass}}">
+                <div class="panel panel-default">
                     <div class="panel-heading text-center">
-                        {{env}}{{asset.host}}
+                        Attributes
                     </div>
                     <!-- /.panel-heading -->
                     <div class="panel-body">
@@ -247,6 +252,17 @@
             <div class="col-lg-6" ng-repeat="pillar in this_pillar track by $index">
                 <div class="panel panel-default">
                     <div class="panel-heading text-center">
+                        Links
+                    </div>
+                    <!-- /.panel-heading -->
+                    <div class="panel-body">
+                        <a href="https://splunk.genevatrading.com/en-US/app/infrastructure_app/linux_overview?form.search_host={{id}}">Splunk</a>
+                        <!-- /.table-responsive -->
+                    </div>
+                    <!-- /.panel-body -->
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading text-center">
                         Editable Fields
                     </div>
                     <!-- /.panel-heading -->
@@ -258,30 +274,24 @@
                                     <tr ng-class='{"info":$index%2==0}'>
                                         <td>{{key}}</td>
                                         <td ng-if="checkType(val)==='str'">
-                                        {{val}}
+                                        {{existing_lists[key]}}
                                         </td>
                                         <td ng-if="checkType(val)==='arr'">
                                         <div class="col-xs-6">
-                                            <select ng-model="selected" ng-change="collectElems(selected)" multiple>
-                                              <option ng-repeat="item in val track by $index" value="{&quot;{{item}}&quot;: {{$index}}}">{{item}}</option>
+                                            <select required id="sel" class="sel" ng-model="selected" ng-change="collectElems(selected)" multiple>
+                                                <option disabled value="">-- choose one --</option>
+                                                <option id="opt" ng-repeat="item in existing_lists[key] track by $index" value="{&quot;{{item}}&quot;: {{$index}}}">{{item}}</option>
                                             </select> 
-                                        </form>
                                         </div>
-                                        </td>
-                                        <td class="dropdown" ng-if="checkType(val)==='dict'">
-                                        <b class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><button type="button" class="btn btn-primary btn-xs">Dict</button><span class="caret"></span></b>
-                                        <ul class="dropdown-menu">
-                                        <li ng-repeat="(key, val) in val"><a>{{key}}: {{val}}</a></li>
-                                        </ul>
                                         </td>
                                         <td ng-if="checkType(val)==='str'">
                                         <div class="row">
                                             <div class="col-xs-6">
-                                                <form ng-submit="updateVal(pillar._id, key, val, index, value, false, false)" method="POST">
+                                                <form ng-submit="updateVal(key, val, index, value, false, false)" method="POST">
                                                     <input class="form-control" type="hidden" name="host" value={{pillar._id}}>
                                                     <input class="form-control" type="hidden" name="key" value={{key}}>
                                                     <div class="col-xs-6">
-                                                    <input class="form-control input-sm" id="inputsm" type="text" name="val" ng-model="value" value=>
+                                                    <input class="form-control input-sm" id="inputsm" type="hidden" name="val" ng-model="value" value=>
                                                     </div>
                                                     <div class="col-sm-1">
                                                     <button type="submit" class="btn btn-primary btn-xs center-block">Change</button>
@@ -293,11 +303,11 @@
                                         <td ng-if="checkType(val)==='arr'">
                                         <div class="row">
                                             <div class="col-xs-6">
-                                                <form ng-submit="updateVal(pillar._id, key, val, index, value, true, false)" method="POST">
+                                                <form ng-submit="updateVal(key, val, index, value, true, false)" method="POST">
                                                     <input class="form-control" type="hidden" name="host" value={{pillar._id}}>
                                                     <input class="form-control" type="hidden" name="key" value={{key}}>
                                                     <div class="col-xs-6">
-                                                    <input class="form-control input-sm" id="inputsm" type="text" name="val" ng-model="value" value=>
+                                                    <input class="form-control input-sm" id="inputsm" type="hidden" name="val" ng-model="value" value=>
                                                     </div>
                                                     <div class="col-xs-1 col-xs-offset-1">
                                                     <button type="submit" class="btn btn-primary btn-xs center-block">Add</button>
@@ -307,60 +317,27 @@
                                         </div>
                                         <div class="row">
                                             <div class="col-xs-6 col-xs-offset-1">
-                                                <form ng-submit="updateVal(pillar._id, key, val, index, value, false, true)" method="POST">
+                                                <form ng-submit="updateVal(key, val, index, value, false, true)" method="POST">
                                                     <input class="form-control" type="hidden" name="host" value={{pillar._id}}>
                                                     <input class="form-control" type="hidden" name="key" value={{key}}>
                                                     <input class="form-control input-sm" id="inputsm" type="hidden" name="val" ng-model="value" value=>
                                                     <div class="col-xs-1 col-xs-offset-5">
-                                                        <button type="submit" class="btn btn-primary btn-xs center-block">Remove</button>
+                                                        <button type="submit" id="rem" class="btn btn-primary btn-xs center-block">Remove</button>
                                                     </div>
                                                 </form>
                                             </div>
                                         </div>
                                         </td>
-                                        <td ng-if="checkType(val)==='str'">
-                                        <div class="row">
-                                            <div class="col-xs-6">
-                                                <br></br>
-                                                <button class="btn btn-primary btn-xs center-block" ng-click="grabModalVals(key, val)" data-toggle="modal" data-target="#myModal">Save Changes</button>
-                                            </div>
-                                        </div>
-                                        </td>
-                                        <td ng-if="checkType(val)==='arr'">
-                                        <div class="row">
-                                            <div class="col-xs-6">
-                                                <br></br>
-                                                <button class="btn btn-primary btn-xs center-block" ng-click="grabModalVals(key, val)" data-toggle="modal" data-target="#myModal">Save Changes</button>
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-xs-6 col-xs-offset-1">
-                                                   <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-                                                        <div class="modal-dialog">
-                                                            <div class="modal-content">
-                                                                <div class="modal-header">
-                                                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                                                                    <h4 class="modal-title" id="myModalLabel">Modal title</h4>
-                                                                </div>
-                                                                <div class="modal-body" ng-if="checkType(grabbed_val)==='str'">
-                                                                    "Please confirm that {{grabbed_key}} is to be set as: {{grabbed_val}}"
-                                                                </div>
-                                                                <div class="modal-body" ng-if="checkType(grabbed_val)==='arr'">
-                                                                    "Please confirm that {{grabbed_key}} is to be set as:"
-                                                                    <li class="list-unstyled" ng-repeat="item in grabbed_val track by $index">{{item}}</li>
-                                                                </div>
-                                                                <div class="modal-footer">
-                                                                    <button ng-if=disabled type="button" class="btn btn-default" data-dismiss="modal">Go Back</button>
-                                                                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                                                                    <button type="button" class="btn btn-primary" data-dismiss="modal" ng-click="saveChanges()">Confirm</button>
-                                                                </div>
-                                                            </div>
-                                                            <!-- /.modal-content -->
-                                                        </div>
-                                                        <!-- /.modal-dialog -->
-                                                    </div>
-                                                </form>
-                                            </div>
+                                        <td>
+                                        <div class="col-xs-6">
+                                            <select  ng-if="checkType(val)==='arr'" ng-model="selected" ng-change="collectElems(selected)" multiple>
+                                                <option disabled value="">-- choose one --</option>
+                                                <option ng-repeat="item in acc_lists[key] track by $index" value="{&quot;{{item}}&quot;: {{$index}}}">{{item}}</option>
+                                            </select>
+                                            <select  ng-if="checkType(val)==='str'" ng-model="selected" ng-change="collectElems(selected)">
+                                                <option disabled value="">-- choose one --</option>
+                                                <option ng-repeat="item in acc_lists[key] track by $index" value="{&quot;{{item}}&quot;: {{$index}}}">{{item}}</option>
+                                            </select> 
                                         </div>
                                         </td>
                                         </div>
@@ -374,9 +351,40 @@
                 </div>
                 <!-- /.panel -->
             </div>
+                <div class="row">
+                    <br></br>
+                    <span style="padding-left:250px"><button class="btn btn-outline btn-primary btn-md" ng-click="grabModalVals(key, val)" data-toggle="modal" data-target="#myModal">Save Changes</button>
+                    <button class="btn btn-outline btn-primary btn-md" ng-click="reset()">Reset</button></span>
+                </div>
+                <div class="row">
+                    <div class="col-xs-6 col-xs-offset-1">
+                           <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                            <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+                                        </div>
+                                        <div class="modal-body">
+                                            {{message}}
+                                            <li class="list-unstyled" ng-repeat="(key,val) in data track by $index">{{key}}: {{val}}</li>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button ng-if=disabled type="button" class="btn btn-default" data-dismiss="modal">Go Back</button>
+                                            <button ng-if=enabled type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                            <button ng-if=enabled type="button" class="btn btn-primary" data-dismiss="modal" ng-click="saveChanges()">Confirm</button>
+                                        </div>
+                                    </div>
+                                    <!-- /.modal-content -->
+                                </div>
+                                <!-- /.modal-dialog -->
+                            </div>
+                        </form>
+                    </div>
+                </div>                                                    
+            </div>
         </div>
     </script>
-
     <script type="text/ng-template" id="/jobs.ejs">
         <div id="custom-page-wrapper">
             <div class="col-lg-12 text-center" ng-repeat="job in this_job | limitTo:1 track by $index">

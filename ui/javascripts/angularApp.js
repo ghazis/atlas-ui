@@ -1,3 +1,5 @@
+//todo: create local scopes so don't need to use val anymore
+
 var get_counter = 0;
 var assetsApp = angular.module('assetsApp', ['ui.router']);
 assetsApp.config([
@@ -77,6 +79,15 @@ function($scope, assets, $http, $window, $location) {
 	$scope.search = '';
 	$scope.assets = assets.assets;
 	$scope.this_id = $location.search()['id'];
+	$scope.acc_lists = {
+		admin_groups: ["infrastructure_sg", "support_sg", "networking_sg"],
+		env_tag: ["prod", "dev"],
+		allowed_groups: ["infrastructure_sg", "support_sg", "networking_sg"],
+		allowed_users: ["splunksvc"],
+		roles: ["admin", "nadmin"],
+		role : ["admin", "nadmin"]
+	};
+	$scope.existing_lists ={};
 
 	$scope.checkType = function(item) {
 		if(item === undefined){
@@ -119,16 +130,31 @@ function($scope, assets, $http, $window, $location) {
 			for (var i=0;i<assets.pillars.length;i++){
 				var id = assets.pillars[i]['_id'];
 				if (id === asset['host']){
+					$scope.id = id;
 					for(var item in assets.pillars[i]){
-						if (item === "minion"){
+						if (item === "minion" || item === "_id"){
 							continue;
 						}
 						pillar_container[item] = assets.pillars[i][item] || "N/A";
 					}
 					assets.getPillar(pillar_container);
+				    for (var k in pillar_container) {
+    					if (pillar_container.hasOwnProperty(k)) {
+    						$scope.existing_lists[k] = pillar_container[k];					}
+					}
 					$scope.envCheck(pillar_container);
 				}
 			}
+			for (var k in assets.this_pillar[0]){
+				if (assets.this_pillar[0][k].constructor === Array){
+					for(var nested in assets.this_pillar[0][k]){
+						if ($scope.acc_lists[k].indexOf(assets.this_pillar[0][k][nested])>=0){
+							$scope.acc_lists[k].splice($scope.acc_lists[k].indexOf(assets.this_pillar[0][k][nested]), 1);
+						}
+					}
+				}
+			}
+			reset_vals = JSON.stringify($scope.existing_lists);
 		});
 	}
 
@@ -151,7 +177,6 @@ function($scope, assets, $http, $window, $location) {
 				}
 				assets.getJob(job_container['full_ret']);
 			}
-			console.log(assets.this_job);
 		});
 	}
 
@@ -196,34 +221,46 @@ function($scope, assets, $http, $window, $location) {
 	$scope.collectElems = function(item){
 		obj = JSON.parse(item);
 		$scope.index = obj[Object.keys(obj)[0]];
+		$scope.value = Object.keys(obj)[0];
+		$scope.limit = 0;
 	}
 
 	$scope.grabModalVals = function(key, val) {
-		$scope.grabbed_key = key;
-		$scope.grabbed_val = val;
+		if (JSON.stringify($scope.existing_lists) === reset_vals){
+			$scope.message = "Please modify values to be saved first";
+			$scope.data = "";
+			$scope.disabled = true;
+		} else {
+			$scope.message = "Please confirm that below is correct:";
+			$scope.data = $scope.existing_lists;
+			$scope.enabled = true;
+			$scope.disabled = false;
+		}
 	}
 
-	$scope.updateVal = function(host, key, val, index, value, addFlag, removeFlag){
+	$scope.updateVal = function(key, val, index, value, addFlag, removeFlag){
 		if (addFlag === true) {
-			if (value!= undefined){
-				val.push(value);
+			if (value!= undefined && $scope.limit < 1 && $scope.existing_lists[key].indexOf(value)<0){
+				$scope.existing_lists[key].push(value);
+				$scope.acc_lists[key].splice($scope.acc_lists[key].indexOf(value), 1);
+				$scope.limit ++;
 			}
 		} else if (removeFlag === true) {
-			if (index!= undefined){
-				val.splice(index, 1);
+			if (index!= undefined && $scope.limit < 1){
+				$scope.existing_lists[key].splice(index, 1);
+				if ($scope.acc_lists[key].indexOf(value)<0){
+					$scope.acc_lists[key].push(value);
+					$scope.limit ++;
+				}
 			}
 		} else {
-			val[index] = value;
+			if($scope.value!=undefined){
+				$scope.existing_lists[key] = $scope.value;
+				$scope.value = undefined;
+			}
 		}
-		if (val.constructor == Array) {
-			val = angular.toJson(val);
-		} else if (val.constructor == String) {
-        	val = value;
-        	assets.this_pillar[0][key] = val;
-		}
-		$scope.updated_host = host;
-		$scope.updated_key = key;
-		$scope.updated_val = val;
+		$scope.updated_host = $scope.id;
+		$scope.updated_val = angular.toJson($scope.existing_lists);
 	}
 
 	$scope.saveChanges = function() {
@@ -233,7 +270,6 @@ function($scope, assets, $http, $window, $location) {
 	          url     : '/api/pillars/',
 	          data    : $.param({
 	        	host: $scope.updated_host,
-	        	key: $scope.updated_key,
 	        	val: $scope.updated_val
 	        }),
 	          headers : {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'} 
@@ -258,6 +294,10 @@ function($scope, assets, $http, $window, $location) {
 		if(job['success']===true){
 			return true;
 		}
+	}
+
+	$scope.reset = function () {
+		$scope.existing_lists = JSON.parse(reset_vals);
 	}
 
 	//ensures assets are not added to table multiple times by pressing back button
