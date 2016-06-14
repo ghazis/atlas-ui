@@ -219,7 +219,7 @@
                     <!-- /.panel-heading -->
                     <div class="panel-body">
                         <div class="table-responsive">
-                            <table class="table">
+                            <table class="table" id="data">
 
                                 <tbody ng-repeat="(key, val) in asset">
                                     <tr ng-class='{"info":$index%2==0}'>
@@ -271,16 +271,16 @@
                             <table class="table">
 
                                 <tbody ng-repeat="(key, val) in pillar">
-                                    <tr ng-class='{"info":$index%2==0}'>
+                                    <tr ng-class='{"info":$index%2==0,"default":$index==1}'>
                                         <td>{{key}}</td>
                                         <td ng-if="checkType(val)==='str'">
                                         {{existing_lists[key]}}
                                         </td>
                                         <td ng-if="checkType(val)==='arr'">
                                         <div class="col-xs-6">
-                                            <select required id="sel" class="sel" ng-model="selected" ng-change="collectElems(selected)" multiple>
+                                            <select required id="rem" ng-model="selected" ng-click="collectElems(selected, true)" multiple>
                                                 <option disabled value="">-- choose one --</option>
-                                                <option id="opt" ng-repeat="item in existing_lists[key] track by $index" value="{&quot;{{item}}&quot;: {{$index}}}">{{item}}</option>
+                                                <option id="opt" ng-repeat="item in existing_lists[key] track by $index" value="{&quot;{{item+','+key}}&quot;: {{$index}}}">{{item}}</option>
                                             </select> 
                                         </div>
                                         </td>
@@ -306,37 +306,39 @@
                                                 <form ng-submit="updateVal(key, val, index, value, true, false)" method="POST">
                                                     <input class="form-control" type="hidden" name="host" value={{pillar._id}}>
                                                     <input class="form-control" type="hidden" name="key" value={{key}}>
-                                                    <div class="col-xs-6">
-                                                    <input class="form-control input-sm" id="inputsm" type="hidden" name="val" ng-model="value" value=>
-                                                    </div>
-                                                    <div class="col-xs-1 col-xs-offset-1">
-                                                    <button type="submit" class="btn btn-primary btn-xs center-block">Add</button>
+                                                    <div class="col-xs-1">
+                                                    <button class="btn btn-primary btn-xs center-block" id="{{'addBut'+$index}}" type="submit">&nbsp&nbsp&nbspAdd&nbsp&nbsp&nbsp</button>
                                                     </div>
                                                 </form>
                                             </div>
+                                            <div class="col-xs-6 col-xs-offset-3">
+                                                <span class="fa fa-long-arrow-left"></span>
+                                            </div>
                                         </div>
                                         <div class="row">
-                                            <div class="col-xs-6 col-xs-offset-1">
+                                            <div class="col-xs-6">
                                                 <form ng-submit="updateVal(key, val, index, value, false, true)" method="POST">
                                                     <input class="form-control" type="hidden" name="host" value={{pillar._id}}>
                                                     <input class="form-control" type="hidden" name="key" value={{key}}>
-                                                    <input class="form-control input-sm" id="inputsm" type="hidden" name="val" ng-model="value" value=>
-                                                    <div class="col-xs-1 col-xs-offset-5">
-                                                        <button type="submit" id="rem" class="btn btn-primary btn-xs center-block">Remove</button>
+                                                    <div class="col-xs-1">
+                                                        <button class="btn btn-primary btn-xs center-block" id="{{'remBut'+$index}}" type="submit">Remove</button>
                                                     </div>
                                                 </form>
+                                            </div>
+                                            <div class="col-xs-6 col-xs-offset-3">
+                                                <span class="fa fa-long-arrow-right"></span>
                                             </div>
                                         </div>
                                         </td>
                                         <td>
                                         <div class="col-xs-6">
-                                            <select  ng-if="checkType(val)==='arr'" ng-model="selected" ng-change="collectElems(selected)" multiple>
+                                            <select required id="add" ng-if="checkType(val)==='arr'" ng-model="selected" ng-click="collectElems(selected, false)" multiple>
                                                 <option disabled value="">-- choose one --</option>
-                                                <option ng-repeat="item in acc_lists[key] track by $index" value="{&quot;{{item}}&quot;: {{$index}}}">{{item}}</option>
+                                                <option ng-repeat="item in acc_lists[key] track by $index" value="{&quot;{{item+','+key}}&quot;: {{$index}}}">{{item}}</option>
                                             </select>
                                             <select  ng-if="checkType(val)==='str'" ng-model="selected" ng-change="collectElems(selected)">
                                                 <option disabled value="">-- choose one --</option>
-                                                <option ng-repeat="item in acc_lists[key] track by $index" value="{&quot;{{item}}&quot;: {{$index}}}">{{item}}</option>
+                                                <option ng-repeat="item in acc_lists[key] track by $index" value="{&quot;{{item+','+key}}&quot;: {{$index}}}">{{item}}</option>
                                             </select> 
                                         </div>
                                         </td>
@@ -349,13 +351,12 @@
                     </div>
                     <!-- /.panel-body -->
                 </div>
-                <!-- /.panel -->
-            </div>
-                <div class="row">
-                    <br></br>
+                <div>
                     <span style="padding-left:250px"><button class="btn btn-outline btn-primary btn-md" ng-click="grabModalVals(key, val)" data-toggle="modal" data-target="#myModal">Save Changes</button>
                     <button class="btn btn-outline btn-primary btn-md" ng-click="reset()">Reset</button></span>
                 </div>
+                <!-- /.panel -->
+            </div>
                 <div class="row">
                     <div class="col-xs-6 col-xs-offset-1">
                            <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
