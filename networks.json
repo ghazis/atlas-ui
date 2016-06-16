@@ -1,4 +1,16 @@
 [
+    {"network": "gt.prod.ice", "routes":
+        [
+            {"route": "239.65.0.0/16"}
+        ],
+	"cidrs": ["192.168.163.0/24"]
+    },
+    {"network": "gt.prod.cme", "routes":
+        [
+            {"route": "239.64.0.0/16"}
+        ],
+	"cidrs": ["192.168.183.0/24"]
+    },
     {"network": "ice.md", "routes":
         [
             {"route": "233.156.208.0/24"}
