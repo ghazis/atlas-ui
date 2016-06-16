@@ -278,7 +278,7 @@
                                         </td>
                                         <td ng-if="checkType(val)==='arr'">
                                         <div class="col-xs-6">
-                                            <select required id="rem" ng-model="selected" ng-click="collectElems(selected, true)" size="{{val.length+1}}" multiple>
+                                            <select required id="rem" ng-model="selected" ng-click="collectElems(selected, true)" ng-attr-size="{{val.length+1}}" multiple>
                                                 <option disabled value="">-- choose one --</option>
                                                 <option id="opt" ng-repeat="item in existing_lists[key] track by $index" value="{&quot;{{item+','+key}}&quot;: {{$index}}}">{{item}}</option>
                                             </select> 
@@ -333,7 +333,7 @@
                                         </td>
                                         <td>
                                         <div class="col-xs-6">
-                                            <select required id="add" ng-if="checkType(val)==='arr'" ng-model="selected" ng-click="collectElems(selected, false)" size="{{acc_lists[key].length+1}}" multiple>
+                                            <select required id="add" ng-if="checkType(val)==='arr'" ng-model="selected" ng-click="collectElems(selected, false)" ng-attr-size="{{acc_lists[key].length+1}}" multiple>
                                                 <option disabled value="">-- choose one --</option>
                                                 <option ng-repeat="item in acc_lists[key] track by $index" value="{&quot;{{item+','+key}}&quot;: {{$index}}}">{{item}}</option>
                                             </select>
