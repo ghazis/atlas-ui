@@ -165,7 +165,7 @@ if __name__ == '__main__':
     app.run(debug=True,port=int(config['port']),host="0.0.0.0")
 
 @app.route("/runs/", methods=['GET'])
-def get_jobs():
+def get_runs():
     try:
         jid = int(request.args['id'])
     except:
