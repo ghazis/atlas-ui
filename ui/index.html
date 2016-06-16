@@ -207,10 +207,6 @@
                     {{env}}{{asset.host}}
                 </div>
             </div>
-            <div class="panel-heading text-center">
-                <a href='#/jobs?id={{asset.minion}}'><button type="button" class="btn btn-outline btn-primary btn-md" ng-click="accessJobs()">View All Jobs</button></a>
-                <br></br>
-            </div>
             <div class="col-lg-6" ng-repeat="asset in this_asset track by $index">
                 <div class="panel panel-default">
                     <div class="panel-heading text-center">
@@ -255,8 +251,9 @@
                         Links
                     </div>
                     <!-- /.panel-heading -->
-                    <div class="panel-body">
-                        <a href="https://splunk.genevatrading.com/en-US/app/infrastructure_app/linux_overview?form.search_host={{id}}">Splunk</a>
+                    <div class="panel-body text-center">
+                        <a href="https://splunk.genevatrading.com/en-US/app/infrastructure_app/linux_overview?form.search_host={{id}}"><button type="button" class="btn btn-outline btn-primary btn-md">Splunk</button></a>
+                        <a href='#/jobs?id={{asset.minion}}'><button type="button" class="btn btn-outline btn-primary btn-md" ng-click="accessJobs()">View All Jobs</button></a>
                         <!-- /.table-responsive -->
                     </div>
                     <!-- /.panel-body -->
@@ -278,7 +275,7 @@
                                         </td>
                                         <td ng-if="checkType(val)==='arr'">
                                         <div class="col-xs-6">
-                                            <select required id="rem" ng-model="selected" ng-click="collectElems(selected, true)" size="{{val.length+1}}" multiple>
+                                            <select required id="rem" ng-model="selected" ng-click="collectElems(selected, true)" ng-attr-size="{{val.length+1}}" multiple>
                                                 <option disabled value="">-- choose one --</option>
                                                 <option id="opt" ng-repeat="item in existing_lists[key] track by $index" value="{&quot;{{item+','+key}}&quot;: {{$index}}}">{{item}}</option>
                                             </select> 
@@ -333,7 +330,7 @@
                                         </td>
                                         <td>
                                         <div class="col-xs-6">
-                                            <select required id="add" ng-if="checkType(val)==='arr'" ng-model="selected" ng-click="collectElems(selected, false)" size="{{acc_lists[key].length+1}}" multiple>
+                                            <select required id="add" ng-if="checkType(val)==='arr'" ng-model="selected" ng-click="collectElems(selected, false)" ng-attr-size="{{acc_lists[key].length+1}}" multiple>
                                                 <option disabled value="">-- choose one --</option>
                                                 <option ng-repeat="item in acc_lists[key] track by $index" value="{&quot;{{item+','+key}}&quot;: {{$index}}}">{{item}}</option>
                                             </select>
@@ -388,13 +385,13 @@
     <script type="text/ng-template" id="/jobs.ejs">
         <div id="custom-page-wrapper">
             <div class="col-lg-12 text-center" ng-repeat="job in this_job | limitTo:1 track by $index">
-            <h2>{{job.id}}</h2>
+            <h2>Salt job results for {{job.id}}</h2>
             </div>
             <br></br>
             <div class="col-lg-12 panel-group" id="accordian" ng-repeat="job in this_job track by $index">
                 <div ng-if=jobStatus(job) class="panel panel-default">
                     <div class="panel-heading text-center" data-toggle="collapse" data-parent="#accordian" data-target="#collapse{{$index}}">
-                        <a class ="accordian-toggle">{{job.fun}}&nbsp&nbsp&nbsp{{job._stamp}}&nbsp&nbsp&nbsp{{job.retcode}}</a>&nbsp<span class="fa fa-caret-down"></span>
+                        <a class ="accordian-toggle">Function: {{job.fun}}&nbsp&nbsp&nbspTimestamp: {{job._stamp}}&nbsp&nbsp&nbspReturn Code: {{job.retcode}}</a>&nbsp<span class="fa fa-caret-down"></span>
                     </div>
                     <!-- /.panel-heading -->
                     <div id="collapse{{$index}}" class="panel-body panel-collapse collapse">
