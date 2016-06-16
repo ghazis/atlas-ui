@@ -385,13 +385,13 @@
     <script type="text/ng-template" id="/jobs.ejs">
         <div id="custom-page-wrapper">
             <div class="col-lg-12 text-center" ng-repeat="job in this_job | limitTo:1 track by $index">
-            <h2>{{job.id}}</h2>
+            <h2>Salt job results for host {{job.id}}</h2>
             </div>
             <br></br>
             <div class="col-lg-12 panel-group" id="accordian" ng-repeat="job in this_job track by $index">
                 <div ng-if=jobStatus(job) class="panel panel-default">
                     <div class="panel-heading text-center" data-toggle="collapse" data-parent="#accordian" data-target="#collapse{{$index}}">
-                        <a class ="accordian-toggle">{{job.fun}}&nbsp&nbsp&nbsp{{job._stamp}}&nbsp&nbsp&nbsp{{job.retcode}}</a>&nbsp<span class="fa fa-caret-down"></span>
+                        <a class ="accordian-toggle">Function: {{job.fun}}&nbsp&nbsp&nbspTimestamp: {{job._stamp}}&nbsp&nbsp&nbspReturn Code: {{job.retcode}}</a>&nbsp<span class="fa fa-caret-down"></span>
                     </div>
                     <!-- /.panel-heading -->
                     <div id="collapse{{$index}}" class="panel-body panel-collapse collapse">
