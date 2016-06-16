@@ -202,12 +202,12 @@
 
     <script type="text/ng-template" id="/asset.ejs">
         <div id="custom-page-wrapper" ng-repeat="asset in this_asset track by $index">
-                <div class="panel panel-default {{envClass}}">
-                    <div class="panel-heading text-center">
-                        {{env}}{{asset.host}}
-                    </div>
+            <div class="panel panel-default {{envClass}}">
+                <div class="panel-heading text-center">
+                    {{env}}{{asset.host}}
                 </div>
-            <div class="col-lg-6 col-lg-offset-5">
+            </div>
+            <div class="panel-heading text-center">
                 <a href='#/jobs?id={{asset.minion}}'><button type="button" class="btn btn-outline btn-primary btn-md" ng-click="accessJobs()">View All Jobs</button></a>
                 <br></br>
             </div>
@@ -271,14 +271,14 @@
                             <table class="table">
 
                                 <tbody ng-repeat="(key, val) in pillar">
-                                    <tr ng-class='{"info":$index%2==0,"default":$index==1}'>
+                                    <tr ng-class="colorRow(val,$index,false)">
                                         <td>{{key}}</td>
                                         <td ng-if="checkType(val)==='str'">
                                         {{existing_lists[key]}}
                                         </td>
                                         <td ng-if="checkType(val)==='arr'">
                                         <div class="col-xs-6">
-                                            <select required id="rem" ng-model="selected" ng-click="collectElems(selected, true)" multiple>
+                                            <select required id="rem" ng-model="selected" ng-click="collectElems(selected, true)" size="{{val.length+1}}" multiple>
                                                 <option disabled value="">-- choose one --</option>
                                                 <option id="opt" ng-repeat="item in existing_lists[key] track by $index" value="{&quot;{{item+','+key}}&quot;: {{$index}}}">{{item}}</option>
                                             </select> 
@@ -290,10 +290,7 @@
                                                 <form ng-submit="updateVal(key, val, index, value, false, false)" method="POST">
                                                     <input class="form-control" type="hidden" name="host" value={{pillar._id}}>
                                                     <input class="form-control" type="hidden" name="key" value={{key}}>
-                                                    <div class="col-xs-6">
-                                                    <input class="form-control input-sm" id="inputsm" type="hidden" name="val" ng-model="value" value=>
-                                                    </div>
-                                                    <div class="col-sm-1">
+                                                    <div class="col-xs-1">
                                                     <button type="submit" class="btn btn-primary btn-xs center-block">Change</button>
                                                     </div>
                                                 </form>
@@ -311,7 +308,9 @@
                                                     </div>
                                                 </form>
                                             </div>
-                                            <div class="col-xs-6 col-xs-offset-3">
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-xs-6 center">
                                                 <span class="fa fa-long-arrow-left"></span>
                                             </div>
                                         </div>
@@ -325,14 +324,16 @@
                                                     </div>
                                                 </form>
                                             </div>
-                                            <div class="col-xs-6 col-xs-offset-3">
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-xs-6 center">
                                                 <span class="fa fa-long-arrow-right"></span>
                                             </div>
                                         </div>
                                         </td>
                                         <td>
                                         <div class="col-xs-6">
-                                            <select required id="add" ng-if="checkType(val)==='arr'" ng-model="selected" ng-click="collectElems(selected, false)" multiple>
+                                            <select required id="add" ng-if="checkType(val)==='arr'" ng-model="selected" ng-click="collectElems(selected, false)" size="{{acc_lists[key].length+1}}" multiple>
                                                 <option disabled value="">-- choose one --</option>
                                                 <option ng-repeat="item in acc_lists[key] track by $index" value="{&quot;{{item+','+key}}&quot;: {{$index}}}">{{item}}</option>
                                             </select>
@@ -349,13 +350,11 @@
                         </div>
                         <!-- /.table-responsive -->
                     </div>
-                    <!-- /.panel-body -->
+                    <div class="panel-heading text-center">
+                        <button class="btn btn-outline btn-primary btn-md" ng-click="grabModalVals(key, val)" data-toggle="modal" data-target="#myModal">Save Changes</button>
+                        <button class="btn btn-outline btn-primary btn-md" ng-click="reset()">Reset</button>
+                    </div>
                 </div>
-                <div>
-                    <span style="padding-left:250px"><button class="btn btn-outline btn-primary btn-md" ng-click="grabModalVals(key, val)" data-toggle="modal" data-target="#myModal">Save Changes</button>
-                    <button class="btn btn-outline btn-primary btn-md" ng-click="reset()">Reset</button></span>
-                </div>
-                <!-- /.panel -->
             </div>
                 <div class="row">
                     <div class="col-xs-6 col-xs-offset-1">

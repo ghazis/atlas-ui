@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from flask import Flask, request
 from flask.ext.cors import CORS
-#from gtCommon import gtLogger
+from gtCommon import gtLogger
 from bson import json_util
 
 import gtldap
@@ -146,7 +146,7 @@ def get_pillars():
                 {'_id': host},
                 {'$set': {k: v}},
                 upsert=False)
-#            logger.info(host + "'s " + k + "has been modified and is now set to " + v)
+            logger.info(host + "'s information has been modified and is now set as " + v)
         return str(params)
 
 @app.route("/jobs/", methods=['GET'])
@@ -161,6 +161,6 @@ def get_jobs():
     return json.dumps(jobs, indent=1, default=json_util.default), 200, {'Content-Type': 'application/json; charset=utf-8'}
 
 if __name__ == '__main__':
-#    logger = gtLogger(config['log_file'], debug=True).getLogger()
+    logger = gtLogger(config['log_file'], debug=True).getLogger()
     app.run(debug=True,port=int(config['port']),host="0.0.0.0")
 
