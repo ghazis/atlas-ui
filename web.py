@@ -156,7 +156,7 @@ def get_jobs():
     minion = request.args['id']
     jobs = []
     fun_filter = ['mine.update', 'saltutil.find_job', 'runner.jobs.lookup_jid', 'runner.jobs.list_job', 'grains.items', 'pillar.items', 'sys.list_functions']
-    for jobresult in pillar_db.saltReturns.find({'minion': minion, "$and": [{"fun": {"$nin": fun_filter}}]}).sort("jid", direction=pymongo.ASCENDING).limit(10):
+    for jobresult in pillar_db.saltReturns.find({'minion': minion, "$and": [{"fun": {"$nin": fun_filter}}]}).sort("jid", direction=pymongo.DESCENDING).limit(10):
         jobs.append(jobresult)
     return json.dumps(jobs, indent=1, default=json_util.default), 200, {'Content-Type': 'application/json; charset=utf-8'}
 
