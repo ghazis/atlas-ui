@@ -163,7 +163,7 @@ def get_jobs():
 @app.route("/runs/", methods=['GET'])
 def get_runs():
     try:
-        jid = int(request.args['id'])
+        jid = request.args['id']
     except:
         return "ID must be specified and be an integer"
     jobs = []
