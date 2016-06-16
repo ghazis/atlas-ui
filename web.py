@@ -160,10 +160,6 @@ def get_jobs():
         jobs.append(jobresult)
     return json.dumps(jobs, indent=1, default=json_util.default), 200, {'Content-Type': 'application/json; charset=utf-8'}
 
-if __name__ == '__main__':
-    logger = gtLogger(config['log_file'], debug=True).getLogger()
-    app.run(debug=True,port=int(config['port']),host="0.0.0.0")
-
 @app.route("/runs/", methods=['GET'])
 def get_runs():
     try:
