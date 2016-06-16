@@ -385,7 +385,7 @@
     <script type="text/ng-template" id="/jobs.ejs">
         <div id="custom-page-wrapper">
             <div class="col-lg-12 text-center" ng-repeat="job in this_job | limitTo:1 track by $index">
-            <h2>Salt job results for host {{job.id}}</h2>
+            <h2>Salt job results for {{job.id}}</h2>
             </div>
             <br></br>
             <div class="col-lg-12 panel-group" id="accordian" ng-repeat="job in this_job track by $index">
