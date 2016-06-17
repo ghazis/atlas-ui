@@ -466,10 +466,10 @@ function($scope, assets, $http, $window, $location) {
 	}
 
 
-	if($scope.this_id.length<15){
+	if($scope.this_id && $scope.this_id.length<15){
 		$scope.accessAsset($scope.this_id);
 		$scope.accessJobs();
-	} else {
+	} else if ($scope.this_id && $scope.this_id.length>15){
 		$scope.accessRuns();
 	}
 	$scope.this_asset = assets.this_asset;
