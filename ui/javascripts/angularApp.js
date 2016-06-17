@@ -171,8 +171,12 @@ function($scope, assets, $http, $window, $location) {
 				if (assets.this_pillar[0][k].constructor === Array){
 					for(var nested in assets.this_pillar[0][k]){
 						//removes any values from acc_lists if they exist in existing_lists
-						if ($scope.acc_lists[k].indexOf(assets.this_pillar[0][k][nested])>=0){
-							$scope.acc_lists[k].splice($scope.acc_lists[k].indexOf(assets.this_pillar[0][k][nested]), 1);
+						try{
+							if ($scope.acc_lists[k].indexOf(assets.this_pillar[0][k][nested])>=0){
+								$scope.acc_lists[k].splice($scope.acc_lists[k].indexOf(assets.this_pillar[0][k][nested]), 1);
+							}
+						} catch(err) {
+							continue;
 						}
 					}
 				}
