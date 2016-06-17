@@ -389,7 +389,29 @@
             </div>
             <br></br>
             <div class="col-lg-12 panel-group" id="accordian" ng-repeat="job in this_job track by $index">
-                <div ng-if=jobStatus(job) class="panel panel-default">
+                <div ng-if="jobSuccessful(job)" class="panel panel-default">
+                    <div class="panel-heading text-center" data-toggle="collapse" data-parent="#accordian" data-target="#collapse{{$index}}">
+                        <a class ="accordian-toggle">Function: {{job.fun}}&nbsp&nbsp&nbspTimestamp: {{job._stamp}}&nbsp&nbsp&nbspReturn Code: {{job.retcode}}</a>&nbsp<span class="fa fa-caret-down"></span>
+                    </div>
+                    <!-- /.panel-heading -->
+                    <div id="collapse{{$index}}" class="panel-body panel-collapse collapse">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                               <tbody ng-repeat="(key, val) in job track by $index">
+                                    <tr ng-class='{"info":$index%2==0}'>
+                                        <td>{{key}}</td>
+                                        <td ng-if="val[0]==='{'"><pre>{{val}}</pre></td>
+                                        <td style="padding:0px" ng-if="key=='jid'"><a href='#/runs?id={{job.jid}}' ng-click="accessRuns()" style="display:block;padding:10px">{{val}}</a></td>
+                                        <td ng-if="val[0]!=='{' && key!='jid'">{{val}}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- /.table-responsive -->
+                    </div>
+                    <!-- /.panel-body -->
+                </div>
+                <div ng-if="!jobSuccessful(job)" class="panel panel-default panel-danger">
                     <div class="panel-heading text-center" data-toggle="collapse" data-parent="#accordian" data-target="#collapse{{$index}}">
                         <a class ="accordian-toggle">Function: {{job.fun}}&nbsp&nbsp&nbspTimestamp: {{job._stamp}}&nbsp&nbsp&nbspReturn Code: {{job.retcode}}</a>&nbsp<span class="fa fa-caret-down"></span>
                     </div>
@@ -400,7 +422,9 @@
                                <tbody ng-repeat="(key, val) in job track by $index">
                                     <tr ng-class='{"info":$index%2==0}'>
                                         <td>{{key}}</td>
-                                        <td><pre>{{val}}</pre></td>
+                                        <td ng-if="val[0]==='{'"><pre>{{val}}</pre></td>
+                                        <td style="padding:0px" ng-if="key=='jid'"><a href='#/runs?id={{job.jid}}' ng-click="accessRuns()" style="display:block;padding:10px">{{val}}</a></td>
+                                        <td ng-if="val[0]!=='{' && key!='jid'">{{val}}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -409,18 +433,54 @@
                     </div>
                     <!-- /.panel-body -->
                 </div>
-                <div ng-if=!jobStatus(job) class="panel panel-default panel-danger">
+                <!-- /.panel -->
+            </div>
+        </div>
+    </script>
+    </script>
+    <script type="text/ng-template" id="/runs.ejs">
+        <div id="custom-page-wrapper">
+            <div class="col-lg-12 text-center" ng-repeat="run in runs | limitTo:1 track by $index">
+            <h2>{{run.jid}} Runs</h2>
+            </div>
+            <br></br>
+            <div class="col-lg-12 panel-group" id="accordian" ng-repeat="run in runs track by $index">
+                <div ng-if="runSuccessful(run)" class="panel panel-default">
                     <div class="panel-heading text-center" data-toggle="collapse" data-parent="#accordian" data-target="#collapse{{$index}}">
-                        <a class ="accordian-toggle">{{job.fun}}&nbsp&nbsp&nbsp{{job._stamp}}&nbsp&nbsp&nbsp{{job.retcode}}</a>&nbsp<span class="fa fa-caret-down"></span>
+                        <a class ="accordian-toggle">Host: {{run.id}}&nbsp&nbsp&nbspFunction: {{run.fun}}&nbsp&nbsp&nbspTimestamp: {{run._stamp}}&nbsp&nbsp&nbspReturn Code: {{run.retcode}}</a>&nbsp<span class="fa fa-caret-down"></span>
+                    </div>
+                    <!-- /.panel-heading -->
+                    <div id="collapse{{$index}}" class="panel-body panel-collapse collapse">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                               <tbody ng-repeat="(key, val) in run track by $index">
+                                    <tr ng-class='{"info":$index%2==0}'>
+                                        <td>{{key}}</td>
+                                        <td ng-if="val[0]==='{'"><pre>{{val}}</pre></td>
+                                        <td style="padding:0px" ng-if="key=='jid'"><a href='#/runs?id={{run.jid}}' ng-click="accessRuns()" style="display:block;padding:10px">{{val}}</a></td>
+                                        <td ng-if="val[0]!=='{' && key!='jid'">{{val}}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- /.table-responsive -->
+                    </div>
+                    <!-- /.panel-body -->
+                </div>
+                <div ng-if="!runSuccessful(run)" class="panel panel-default panel-danger">
+                    <div class="panel-heading text-center" data-toggle="collapse" data-parent="#accordian" data-target="#collapse{{$index}}">
+                        <a class ="accordian-toggle">Host: {{run.id}}&nbsp&nbsp&nbspFunction: {{run.fun}}&nbsp&nbsp&nbspTimestamp: {{run._stamp}}&nbsp&nbsp&nbspReturn Code: {{run.retcode}}</a>&nbsp<span class="fa fa-caret-down"></span>
                     </div>
                     <!-- /.panel-heading -->
                     <div id="collapse{{$index}}" class="panel-body panel-collapse collapse">
                         <div class="table-responsive">
                             <table class="table">
-                               <tbody ng-repeat="(key, val) in job track by $index">
+                               <tbody ng-repeat="(key, val) in run track by $index">
                                     <tr ng-class='{"info":$index%2==0}'>
                                         <td>{{key}}</td>
-                                        <td><pre>{{val}}</pre></td>
+                                        <td ng-if="val[0]==='{'"><pre>{{val}}</pre></td>
+                                        <td style="padding:0px" ng-if="key=='jid'"><a href='#/runs?id={{run.jid}}' ng-click="accessRuns()" style="display:block;padding:10px">{{val}}</a></td>
+                                        <td ng-if="val[0]!=='{' && key!='jid'">{{val}}</td>
                                     </tr>
                                 </tbody>
                             </table>
