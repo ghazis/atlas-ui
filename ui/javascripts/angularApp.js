@@ -28,6 +28,13 @@ function($stateProvider, $urlRouterProvider) {
 	  controller: 'MainCtrl',
 	  })
 
+	$stateProvider
+	  .state('runs', {
+	  url: '/runs?id',
+	  templateUrl: '/runs.ejs',
+	  controller: 'MainCtrl',
+	  })
+
 	$urlRouterProvider.otherwise('home');
 
 }])
@@ -36,6 +43,7 @@ assetsApp.factory('assets', function(){
 	var assets = {
         assets: [],
         pillars: [],
+        runs: [],
         this_asset: [],
         this_pillar: [],
         this_job: [],
@@ -44,8 +52,13 @@ assetsApp.factory('assets', function(){
     assets.getAssets = function(asset){
     	assets.assets.push(asset);
     }
+
     assets.getPillars = function(pillar){
     	assets.pillars.push(pillar);
+    }
+
+    assets.getRuns = function(run) {
+    	assets.runs.push(run);
     }
 
     assets.getAsset = function(asset) {
@@ -158,13 +171,39 @@ function($scope, assets, $http, $window, $location) {
 				if (assets.this_pillar[0][k].constructor === Array){
 					for(var nested in assets.this_pillar[0][k]){
 						//removes any values from acc_lists if they exist in existing_lists
-						if ($scope.acc_lists[k].indexOf(assets.this_pillar[0][k][nested])>=0){
-							$scope.acc_lists[k].splice($scope.acc_lists[k].indexOf(assets.this_pillar[0][k][nested]), 1);
+						try{
+							if ($scope.acc_lists[k].indexOf(assets.this_pillar[0][k][nested])>=0){
+								$scope.acc_lists[k].splice($scope.acc_lists[k].indexOf(assets.this_pillar[0][k][nested]), 1);
+							}
+						} catch(err) {
+							continue;
 						}
 					}
 				}
 			}
 			$scope.initial_vals = JSON.stringify($scope.existing_lists);
+		});
+	}
+
+	$scope.accessRuns = function(){
+		assets.runs = [];
+		id = $location.search()['id']
+    	$http.get('/api/runs/?id=' + id).then(function(data) {
+    		var data = data.data;
+			for (var i=0;i<data.length;i++){
+				var runs_container = {};
+				for(var item in data[i]){
+					runs_container[item] = data[i][item] || "N/A";
+				}
+				for(var elem in runs_container['full_ret']){
+					if($scope.checkType(runs_container['full_ret'][elem])==='dict'){
+						var to_be_pretty = runs_container['full_ret'][elem];
+						pretty = JSON.stringify(to_be_pretty, null, 2);
+						runs_container['full_ret'][elem] = pretty;
+					}
+				}
+				assets.getRuns(runs_container['full_ret']);
+			}
 		});
 	}
 
@@ -174,18 +213,18 @@ function($scope, assets, $http, $window, $location) {
     	$http.get('/api/jobs/?id=' + id).then(function(data) {
     		var data = data.data;
 			for (var i=0;i<data.length;i++){
-				var job_container = {};
+				var runs_container = {};
 				for(var item in data[i]){
-					job_container[item] = data[i][item] || "N/A";
+					runs_container[item] = data[i][item] || "N/A";
 				}
-				for(var elem in job_container['full_ret']){
-					if($scope.checkType(job_container['full_ret'][elem])==='dict'){
-						var to_be_pretty = job_container['full_ret'][elem];
+				for(var elem in runs_container['full_ret']){
+					if($scope.checkType(runs_container['full_ret'][elem])==='dict'){
+						var to_be_pretty = runs_container['full_ret'][elem];
 						pretty = JSON.stringify(to_be_pretty, null, 2);
-						job_container['full_ret'][elem] = pretty;
+						runs_container['full_ret'][elem] = pretty;
 					}
 				}
-				assets.getJob(job_container['full_ret']);
+				assets.getJob(runs_container['full_ret']);
 			}
 		});
 	}
@@ -332,9 +371,21 @@ function($scope, assets, $http, $window, $location) {
 		$scope.env = asset['env_tag'] + " - ";
 	}
 
-	$scope.jobStatus = function(job){
+	$scope.runSuccessful = function(run){
+		//checks for successful jobs
+		if(run['retcode']===0){
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	$scope.jobSuccessful = function(job){
+		//checks for successful jobs
 		if(job['success']===true){
 			return true;
+		} else {
+			return false;
 		}
 	}
 
@@ -419,13 +470,15 @@ function($scope, assets, $http, $window, $location) {
 	}
 
 
-	if($scope.this_id){
+	if($scope.this_id && $scope.this_id.length<15){
 		$scope.accessAsset($scope.this_id);
 		$scope.accessJobs();
+	} else if ($scope.this_id && $scope.this_id.length>15){
+		$scope.accessRuns();
 	}
 	$scope.this_asset = assets.this_asset;
 	$scope.this_pillar = assets.this_pillar;
-	$scope.this_job = assets.jobs;
+	$scope.runs = assets.runs;
 	$scope.this_job = assets.this_job;
 
 }]);
