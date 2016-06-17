@@ -60,7 +60,7 @@ class ldap_client:
         for user in self.search('(&(objectclass=person)(sAMAccountName=*))', attrs=['mail', 'sAMAccountName'], base_dn="OU=AllUsers,OU=GENEVATRADING,DC=genevatrading,DC=com"):
             attrs = user.get_attributes()
             if 'sAMAccountName' in attrs:
-                users[attrs['sAMAccountName'][0]] = user.get_dn()
+                users[attrs['sAMAccountName'][0].lower()] = user.get_dn()
 
         for group in self.search('(&(objectclass=group)(name=*))', attrs=['member', 'displayname', 'name']):
             attrs = group.get_attributes()
@@ -69,9 +69,9 @@ class ldap_client:
                     displayname = attrs['displayname'][0]
                 else:
                     displayname = ''
-                groups[attrs['name'][0]] = {'members': attrs['member'], 'dn': group.get_dn(), 'displayname': displayname}
+                groups[attrs['name'][0].lower()] = {'members': attrs['member'], 'dn': group.get_dn(), 'displayname': displayname}
         
-        self.user_dn_map = dict((v,k) for k,v in users.iteritems())
+        self.user_dn_map = dict([(v,k) for k,v in users.iteritems()])
         for name, group in groups.items():
             self.group_dn_map[group['dn']] = name
 
@@ -81,7 +81,7 @@ class ldap_client:
 
         self.group_cache = {}
         for group, attrs in groups.items():
-            self.group_cache[group] = self.resolve_members(attrs['members'], group, ldap_groups)
+            self.group_cache[group] = [x.lower() for x in self.resolve_members(attrs['members'], group, ldap_groups)]
 
         self.user_cache = {}
         for group, attrs in groups.items():
