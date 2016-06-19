@@ -92,7 +92,10 @@ def get_asset(asset):
 
 @app.route("/networks/")
 def get_networks():
-    net_config = json.loads(open('networks.json', 'r').read())
+    net_config = {}
+    for network in db.networks.find({}):
+        del network['_id']
+        net_config[network['network']] = network
     return json.dumps(net_config, indent=1), 200, {'Content-Type': 'application/json; charset=utf-8'}
 
 
