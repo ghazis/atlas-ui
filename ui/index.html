@@ -25,9 +25,9 @@
 <body ng-app="assetsApp">
     <ui-view></ui-view>
     <!-- jQuery -->
-    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.3.10/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.10/angular.min.js"></script>
 
-    <script src="http://cdnjs.cloudflare.com/ajax/libs/angular-ui-router/0.2.10/angular-ui-router.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-router/0.2.10/angular-ui-router.js"></script>
 
     <script src="/javascripts/angularApp.js"></script>
 
@@ -457,7 +457,7 @@
                                     <tr ng-class='{"info":$index%2==0}'>
                                         <td>{{key}}</td>
                                         <td ng-if="val[0]==='{'"><pre>{{val}}</pre></td>
-                                        <td style="padding:0px" ng-if="key=='jid'"><a href='#/runs?id={{run.jid}}' ng-click="accessRuns()" style="display:block;padding:10px">{{val}}</a></td>
+                                        <td ng-if="key=='jid'">{{val}}</td>
                                         <td ng-if="val[0]!=='{' && key!='jid'">{{val}}</td>
                                     </tr>
                                 </tbody>
@@ -479,7 +479,7 @@
                                     <tr ng-class='{"info":$index%2==0}'>
                                         <td>{{key}}</td>
                                         <td ng-if="val[0]==='{'"><pre>{{val}}</pre></td>
-                                        <td style="padding:0px" ng-if="key=='jid'"><a href='#/runs?id={{run.jid}}' ng-click="accessRuns()" style="display:block;padding:10px">{{val}}</a></td>
+                                        <td ng-if="key=='jid'">{{val}}</td>
                                         <td ng-if="val[0]!=='{' && key!='jid'">{{val}}</td>
                                     </tr>
                                 </tbody>

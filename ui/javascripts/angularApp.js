@@ -359,6 +359,7 @@ function($scope, assets, $http, $window, $location) {
 	          })
 	        $scope.modified_rows_index = [];
 	        $scope.colorRow(null, null, true);
+	        $scope.reset_buttons();
 		}
 	}
 
@@ -420,10 +421,7 @@ function($scope, assets, $http, $window, $location) {
 		}
 	}
 
-	$scope.reset = function () {
-		$scope.modified_rows_index = [];
-		$('#add option').attr('selected', null);
-		$('#rem option').attr('selected', null);
+	$scope.reset_buttons = function() {
 		for(i = 0; i < 6; i++){
 			try {
 				document.getElementById("addBut"+i).disabled = false;
@@ -433,6 +431,13 @@ function($scope, assets, $http, $window, $location) {
 			    continue;
 			}
 		}
+	}
+
+	$scope.reset = function () {
+		$scope.modified_rows_index = [];
+		$('#add option').attr('selected', null);
+		$('#rem option').attr('selected', null);
+		$scope.reset_buttons();
 		if($scope.save_status != true){
 			reset_acc_lists = JSON.parse($scope.reset_acc_lists);
 			$scope.existing_lists = JSON.parse($scope.initial_vals);
