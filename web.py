@@ -34,6 +34,7 @@ def get_group(group):
     groups = lc.find_groups(group)
     return json.dumps(groups, indent=1), 200, {'Content-Type': 'application/json; charset=utf-8'}
 
+
 @app.route('/users/<username>')
 def get_user(username):
     users = lc.find_users(username)
@@ -131,26 +132,29 @@ def get_assets():
         return kv_assets
     return json.dumps(assets, indent=1), 200, {'Content-Type': 'application/json; charset=utf-8'}
 
-@app.route("/pillars/", methods=['GET', 'POST'])
+
+@app.route("/pillars/", methods=['GET'])
 def get_pillars():
-    if request.method == 'GET':
-        pillars = {}
-        for host in pillar_db.pillar.find({}):
-            pillars[host['_id']] = host
-        return json.dumps(pillars, indent=1), 200, {'Content-Type': 'application/json; charset=utf-8'}
-    elif request.method == 'POST':
-        params = request.form
-        host = params['host']
-        val = json.loads(params['val'])
-        for k,v in val.iteritems():
-            print k
-            print v
-            pillar_db.pillar.update(
-                {'_id': host},
-                {'$set': {k: v}},
-                upsert=False)
-            logger.info(host + "'s information has been modified and is now set as " + v)
-        return str(params)
+    pillars = {}
+    for host in pillar_db.pillar.find({}):
+        pillars[host['_id']] = host
+    return json.dumps(pillars, indent=1), 200, {'Content-Type': 'application/json; charset=utf-8'}
+
+@app.route("/pillars/", methods=['POST'])
+def set_pillars():
+    params = request.form
+    host = params['host']
+    val = json.loads(params['val'])
+    for k,v in val.iteritems():
+        print k
+        print v
+        pillar_db.pillar.update(
+            {'_id': host},
+            {'$set': {k: v}},
+            upsert=False)
+        logger.info(host + "'s information has been modified and is now set as " + v)
+    return str(params)
+
 
 @app.route("/jobs/", methods=['GET'])
 def get_jobs():
@@ -162,6 +166,7 @@ def get_jobs():
     for jobresult in pillar_db.saltReturns.find({'minion': minion, "$and": [{"fun": {"$nin": fun_filter}}]}).sort("jid", direction=pymongo.DESCENDING).limit(20):
         jobs.append(jobresult)
     return json.dumps(jobs, indent=1, default=json_util.default), 200, {'Content-Type': 'application/json; charset=utf-8'}
+
 
 @app.route("/runs/", methods=['GET'])
 def get_runs():
