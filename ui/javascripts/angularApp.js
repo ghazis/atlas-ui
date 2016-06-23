@@ -97,9 +97,9 @@ function($scope, assets, $http, $window, $location) {
 	//possible values lists
 	$scope.acc_lists = {
 		admin_users: ["pkusch"],
-		admin_groups: ["infrastructure_sg", "support_sg", "networking_sg", "kdb-users_sg", "risk_sg", "core-tech_sg", "core-dev_sg", "core-data_sg","rhone-developers_sg", "rhone-users_sg", "1729_sg", "armada_sg", "cdg_sg", "fxd_sg", "gamc_sg", "house_sg", "pmg_sg", "team1_sg", "tmt_sg"],
+		admin_groups: ["infrastructure_sg", "support_sg", "networking_sg", "kdb-users_sg", "risk_sg", "core-tech_sg", "core-dev_sg", "core-data_sg","rhone-developers_sg", "rhone-users_sg", "1729_sg", "armada_sg", "cdg_sg", "fxd_sg", "gamc_sg", "house_sg", "pmg_sg", "risk_sg", "team1_sg", "tmt_sg"],
 		env_tag: ["prod", "dev"],
-		allowed_groups: ["infrastructure_sg", "support_sg", "networking_sg", "kdb-users_sg", "risk_sg", "core-tech_sg", "core-dev_sg", "core-data_sg","rhone-developers_sg", "rhone-users_sg", "1729_sg", "armada_sg", "cdg_sg", "fxd_sg", "gamc_sg", "house_sg", "pmg_sg", "team1_sg", "tmt_sg"],
+		allowed_groups: ["infrastructure_sg", "support_sg", "networking_sg", "kdb-users_sg", "risk_sg", "core-tech_sg", "core-dev_sg", "core-data_sg","rhone-developers_sg", "rhone-users_sg", "1729_sg", "armada_sg", "cdg_sg", "fxd_sg", "gamc_sg", "house_sg", "pmg_sg", "risk-sg", "team1_sg", "tmt_sg"],
 		allowed_users: ["splunksvc", "pcapd", "rhouse", "coredevsvc", "scilasvc", "refdatasvc", "rhonemdssvc", "rhonesvc", "rhonemdsdevsvc", "ocapsvc", "atlassvc"],
 		roles: ["admin", "dev", "mds", "nadmin", "kdb", "pcapd", "rhone"],
 	};
@@ -299,6 +299,7 @@ function($scope, assets, $http, $window, $location) {
 			$scope.disabled = true;
 		} else {
 			$scope.message = "Please confirm that below is correct:";
+			$scope.existing_lists.role = $scope.existing_list.roles
 			$scope.data = $scope.existing_lists;
 			$scope.enabled = true;
 			$scope.disabled = false;
