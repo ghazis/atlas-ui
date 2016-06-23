@@ -8,7 +8,7 @@
 branch=${1:master}
 RC=0
 
-su - atlassvc -c "cd ~/atlas/; git reset --hard; git fetch --all; git checkout ${branch}; git reset --hard; git pull;"
+su - atlassvc -c "cd ${SCRIPT_DIR}; git reset --hard; git checkout ${branch}; git reset --hard; git pull;"
 RC=$((RC+$?))
 systemctl restart atlas-webservice
 RC=$((RC+$?))
