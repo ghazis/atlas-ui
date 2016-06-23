@@ -299,7 +299,7 @@ function($scope, assets, $http, $window, $location) {
 			$scope.disabled = true;
 		} else {
 			$scope.message = "Please confirm that below is correct:";
-			$scope.existing_lists.role = $scope.existing_list.roles
+			$scope.existing_lists.role = $scope.existing_lists.roles
 			$scope.data = $scope.existing_lists;
 			$scope.enabled = true;
 			$scope.disabled = false;
