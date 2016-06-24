@@ -268,7 +268,7 @@
                             <table class="table">
 
                                 <tbody ng-repeat="(key, val) in pillar">
-                                    <tr ng-class="colorRow(val,$index,false)">
+                                    <tr ng-class="colorRow(val,$index,false)" ng-if="key!='role'">
                                         <td>{{key}}</td>
                                         <td ng-if="checkType(val)==='str'">
                                         {{existing_lists[key]}}
