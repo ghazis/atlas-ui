@@ -204,7 +204,8 @@
         <div id="custom-page-wrapper" ng-repeat="asset in this_asset track by $index">
             <div class="panel panel-default {{envClass}}">
                 <div class="panel-heading text-center">
-                    {{env}}{{asset.host}}
+                    {{env}}{{asset.host}}<br>
+                    {{update_string}}{{time | date:'medium'}}
                 </div>
             </div>
             <div class="col-lg-6" ng-repeat="asset in this_asset track by $index">

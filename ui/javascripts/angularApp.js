@@ -339,6 +339,8 @@ function($scope, assets, $http, $window, $location) {
 	}
 
 	$scope.saveChanges = function() {
+		$scope.time = Date.now(); //needs to be added to db for persistence
+		$scope.update_string = "Last Updated ";
 		$scope.save_status = true;
 		$scope.initial_vals = JSON.stringify($scope.existing_lists);
 		//sends a post http call to update all values that were modified
