@@ -94,6 +94,7 @@ function($scope, assets, $http, $window, $location) {
 	$scope.list_index = [];
 	$scope.modified_rows_index = [];
 	$scope.this_id = $location.search()['id'];
+	$scope.homepage_fields = ['host', 'roles', 'tags', 'env_tag', 'ipv4', 'ilo_ip', 'serialnumber', 'productname', 'osrelease', 'allowed_groups'];
 	//possible values lists
 	$scope.acc_lists = {
 		admin_users: ["pkusch"],
@@ -107,9 +108,14 @@ function($scope, assets, $http, $window, $location) {
 	//empty object which will contain all current values that are pulled from http call
 	$scope.existing_lists ={};
 
+	$scope.show = function() {
+		console.log($scope.sortType);
+	}
+
 	$scope.checkType = function(item) {
 		if(item === undefined){
 			item = "N/A";
+			return "undefined";
 		}
 	    if (item.constructor === Object){
 	   		return "dict";
@@ -249,6 +255,9 @@ function($scope, assets, $http, $window, $location) {
 				assets.getAssets(
 					asset_container
 				)
+				if(asset_container['host']=='baslsa001'){
+					console.log($scope.checkType(asset_container['ilo_ip']));
+				}
 			}
 	    });
 	};
