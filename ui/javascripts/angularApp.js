@@ -108,8 +108,9 @@ function($scope, assets, $http, $window, $location) {
 	//empty object which will contain all current values that are pulled from http call
 	$scope.existing_lists ={};
 
-	$scope.show = function() {
-		console.log($scope.sortType);
+	$scope.setSortType = function(field) {
+		$scope.sortReverse=!$scope.sortReverse;
+		$scope.sortType = field;
 	}
 
 	$scope.checkType = function(item) {
@@ -255,9 +256,6 @@ function($scope, assets, $http, $window, $location) {
 				assets.getAssets(
 					asset_container
 				)
-				if(asset_container['host']=='baslsa001'){
-					console.log($scope.checkType(asset_container['ilo_ip']));
-				}
 			}
 	    });
 	};
@@ -483,7 +481,7 @@ function($scope, assets, $http, $window, $location) {
 		$window.onload = $scope.addAssets();
 		$window.onload = $scope.addEditableAssets();
 		get_counter += 1;
-	}
+		}
 
 
 	if($scope.this_id && $scope.this_id.length<15){
@@ -496,5 +494,4 @@ function($scope, assets, $http, $window, $location) {
 	$scope.this_pillar = assets.this_pillar;
 	$scope.runs = assets.runs;
 	$scope.this_job = assets.this_job;
-
 }]);
