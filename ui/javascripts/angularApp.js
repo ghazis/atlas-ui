@@ -94,6 +94,8 @@ function($scope, assets, $http, $window, $location) {
 	$scope.list_index = [];
 	$scope.modified_rows_index = [];
 	$scope.this_id = $location.search()['id'];
+	$scope.possible_homepage_fields = [];
+	$scope.selected_homepage_fields = {};
 	$scope.homepage_fields = ['host', 'roles', 'tags', 'env_tag', 'ipv4', 'ilo_ip', 'serialnumber', 'productname', 'osrelease', 'allowed_groups'];
 	//possible values lists
 	$scope.acc_lists = {
@@ -236,7 +238,7 @@ function($scope, assets, $http, $window, $location) {
 	}
 
 	$scope.addAssets = function(id){
-	    $http.get('/api/assets/').success(function(data) {
+	    $http.get('/api/assets/').success(function(data, headers) {
 			for (var i=0;i<data.length;i++){
 				var asset_container = {};
 				for(var item in data[i]){
@@ -257,6 +259,7 @@ function($scope, assets, $http, $window, $location) {
 					asset_container
 				)
 			}
+			$scope.createPossibleFieldsArray(assets.assets);
 	    });
 	};
 
@@ -275,6 +278,68 @@ function($scope, assets, $http, $window, $location) {
 			}
 	    });
 	};
+
+	//populates possible_fields_array for homepage layout modification
+	$scope.createPossibleFieldsArray = function (arr) {
+		for(var i=0; i<arr.length; i++){
+			for (var elem in arr[i]) {
+				if($.inArray(elem, $scope.possible_homepage_fields)==-1){
+					$scope.possible_homepage_fields.push(elem);
+				}
+				if($.inArray(elem, $scope.homepage_fields)>-1){
+					$scope.selected_homepage_fields[elem]=true;
+				} else {
+					$scope.selected_homepage_fields[elem]=false;
+				}
+			}
+		}
+		$scope.possible_homepage_fields = $scope.possible_homepage_fields.sort();
+	}
+
+	$scope.saveHomepageLayout = function () {
+		for (elem in $scope.selected_homepage_fields){
+			if ($scope.selected_homepage_fields[elem]==false){
+				if($.inArray(elem, $scope.homepage_fields)>-1){
+					$scope.homepage_fields.splice($scope.homepage_fields.indexOf(elem), 1);
+				}
+			}
+			if ($scope.selected_homepage_fields[elem]==true){
+				if($.inArray(elem, $scope.homepage_fields)==-1){
+					$scope.homepage_fields.push(elem);
+				}
+			}
+		}
+		$scope.homepage_fields.sort();
+		if($.inArray('host', $scope.homepage_fields)>-1){
+			$scope.homepage_fields.splice($scope.homepage_fields.indexOf('host'),1);
+			$scope.homepage_fields.unshift('host');
+		}
+		if($.inArray('hostname', $scope.homepage_fields)>-1){
+			$scope.homepage_fields.splice($scope.homepage_fields.indexOf('hostname'),1);
+			$scope.homepage_fields.unshift('hostname');
+		}
+		$scope.saveLayout();
+	}
+
+	$scope.saveLayout = function() {
+		//sends a post http call to update homepage layout
+		if(1==1) {
+	        $http({
+	          method  : 'POST',
+	          url     : '/api/profiles/',
+	          data    : $.param({
+	        	layout: $scope.selected_homepage_fields,
+	        	//val: $scope.updated_val
+	        }),
+	          headers : {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'} 
+	         })
+	          .success(function(data) {
+	          	// console.log("worked");
+	          }).error(function(data){
+	          	// console.log("did not work");
+	          })
+		}
+	}
 
 	$scope.collectElems = function(item, removeFlag){
 		//called whenever a value is clicked to grab information

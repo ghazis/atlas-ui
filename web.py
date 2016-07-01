@@ -102,6 +102,10 @@ def get_networks():
 
 @app.route("/assets/")
 def get_assets():
+    test = db.profiles.find()
+    for i in test:
+        print i
+    print request.headers.get('gtuser')
     assets = []
     pillars = {}
     serialize = request.args.get('serialize', False)
@@ -178,6 +182,31 @@ def get_runs():
     for jobresult in pillar_db.saltReturns.find({'jid': jid}):
         jobs.append(jobresult)
     return json.dumps(jobs, indent=1, default=json_util.default), 200, {'Content-Type': 'application/json; charset=utf-8'}
+
+@app.route("/profiles/", methods=['GET', 'POST'])
+def get_profiles():
+    if request.method =="GET":
+        if request.headers.get('gtuser'):
+            return 'True'
+        else:
+            return 'False'
+    if request.method =="POST":
+        params = request.form
+        layout = params['layout']
+        print layout
+        return 'layout'
+        #val = json.loads(params['val'])
+##        for k,v in val.iteritems():
+##            print k
+##            print v
+##            pillar_db.pillar.update(
+##                {'_id': host},
+##                {'$set': {k: v}},
+##                upsert=False)
+##            logger.info(host + "'s information has been modified and is now set as " + v)
+##        return str(params)
+        
+    
 
 if __name__ == '__main__':
     logger = gtLogger(config['log_file'], debug=True).getLogger()

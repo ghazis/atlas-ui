@@ -64,17 +64,19 @@
                                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                                     <h4 class="modal-title" id="myModalLabel">Displayed Fields</h4>
                                 </div>
-                                        <div class="form-group">
-                                            <label>Checkboxes</label>
-                                            <div class="checkbox" ng-repeat="field in homepage_fields">
-                                                <label>
-                                                    <input type="checkbox" value="">{{field}}
-                                                </label>
-                                            </div>
+                                <label>&nbsp</label>
+                                <div class="form-group col-xs-offset-1">
+                                    <label>Please Select Which Fields You Would Like Displayed</label>
+                                    <div class="checkbox" ng-repeat="field in possible_homepage_fields">
+                                        <div class="col-md-4">
+                                            <input type="checkbox" value="field" ng-model="selected_homepage_fields[field]">{{field}}</input>
                                         </div>
+                                    </div>
+                                </div>
+                                <label>&nbsp</label>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                                    <button type="button" class="btn btn-primary">Save changes</button>
+                                    <button type="button" class="btn btn-primary" ng-click="saveHomepageLayout()" data-dismiss="modal">Save changes</button>
                                 </div>
                             </div>
                             <!-- /.modal-content -->
@@ -82,7 +84,8 @@
                         <!-- /.modal-dialog -->
                     </div>
                     <div class="table-responsive">
-                        <table id="myTable" class="table table-striped table-bordered table-hover text-center">
+                        <h2 class="text-center" ng-if="homepage_fields.length==0">Please Choose Fields To Display</h4>
+                        <table id="myTable" class="table table-striped table-bordered table-hover text-center" ng-if="homepage_fields.length>0">
                             <thead>
                                 <tr>
                                     <th style="text-align:center">Details</th>
