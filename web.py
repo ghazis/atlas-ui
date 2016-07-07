@@ -250,6 +250,6 @@ def get_profiles():
     
 
 if __name__ == '__main__':
-    app.before_first_request(_log_request)
+    app.before_request(_log_request)
     app.run(debug=True,port=int(config['port']),host="0.0.0.0")
 
