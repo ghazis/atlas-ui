@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from flask import Flask, request
+from flask import Flask, request, g
 from flask.ext.cors import CORS
 from gtCommon import gtLogger
 from bson import json_util
@@ -34,9 +34,19 @@ logger = gtLogger(config['log_file'], debug=enable_debug_logging).getLogger()
 
 
 def _log_request():
-    flask.g['user'] = request.headers.get('gtuser', 'unknown-user')
-    flask.g['request_id'] = "{}_{}".format(flask.g['user'], datetime.datetime.now().strftime('%Y%m%dD%H%M%S'))
-    logger.info('request_id="{}" user="{}" headers="{}" method="{}" request_url="{}"'.format(flask.g['request_id'], flask.g['user'], dict(request.headers), requeset.method, request.url))
+    g['user'] = request.headers.get('gtuser', 'unknown-user')
+    g['request_id'] = "{}_{}".format(g['user'], datetime.datetime.now().strftime('%Y%m%dD%H%M%S'))
+    logger.info('request_id="{}" user="{}" headers="{}" method="{}" request_url="{}"'.format(g['request_id'], g['user'], dict(request.headers), requeset.method, request.url))
+
+
+@app.errorhandler(Exception)
+def _handle_exception(e):
+    exc_type, exc_value, exc_traceback = sys.exc_info()
+    logger.error("exception='{}' stack_trace='{}'".format(e,
+        ''.join([ x.replace('\\n', '\n') for x in traceback.format_list(traceback.extract_tb(exc_traceback, limit=10))]).strip()))
+    return 'Error : {}'.format(e), 500
+
+
 
 @app.route('/groups/<group>')
 def get_group(group):
