@@ -27,7 +27,14 @@ client[config['mongo_atlas_db']].authenticate(config['mongo_user'], config['mong
 client[config['mongo_salt_db']].authenticate(config['mongo_user'], config['mongo_pw'])
 db = client[config['mongo_atlas_db']]
 pillar_db = client[config['mongo_salt_db']]
+enable_debug_logging = False
+if config.get('log_level', 'info').lower() == 'debug':
+    enable_debug_logging = True
+logger = gtLogger(config['log_file'], debug=enable_debug_logging).getLogger()
 
+
+def _log_request(_request):
+    logger.info(_request)
 
 @app.route('/groups/<group>')
 def get_group(group):
@@ -229,6 +236,6 @@ def get_profiles():
     
 
 if __name__ == '__main__':
-    logger = gtLogger(config['log_file'], debug=True).getLogger()
+    app.before_first_request(_log_request, request)
     app.run(debug=True,port=int(config['port']),host="0.0.0.0")
 
