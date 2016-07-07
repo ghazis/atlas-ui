@@ -136,9 +136,6 @@ def get_networks():
 @app.route("/assets/")
 def get_assets():
     test = db.profiles.find()
-    for i in test:
-        print i
-    print request.headers.get('gtuser')
     assets = []
     pillars = {}
     serialize = request.args.get('serialize', False)
@@ -191,8 +188,6 @@ def set_pillars():
     host = params['host']
     val = json.loads(params['val'])
     for k,v in val.iteritems():
-        print k
-        print v
         pillar_db.pillar.update(
             {'_id': host},
             {'$set': {k: v}},
@@ -234,7 +229,6 @@ def get_profiles():
     if request.method =="POST":
         params = request.form
         layout = params['layout']
-        print layout
         return 'layout'
         #val = json.loads(params['val'])
 ##        for k,v in val.iteritems():
