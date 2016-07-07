@@ -259,6 +259,7 @@ function($scope, assets, $http, $window, $location) {
 				)
 			}
 			$scope.createPossibleFieldsArray(assets.assets);
+			$scope.temp_asset = assets.assets;
 	    });
 	};
 
@@ -557,8 +558,9 @@ function($scope, assets, $http, $window, $location) {
 	}
 
 	//ensures assets are not added to table multiple times by pressing back button
+	$window.onload = $scope.getProfile();
+	$scope.createPossibleFieldsArray(assets.assets);
 	if(get_counter === 0){
-		$window.onload = $scope.getProfile();
 		$window.onload = $scope.addAssets();
 		$window.onload = $scope.addEditableAssets();
 		get_counter += 1;
