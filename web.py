@@ -72,12 +72,23 @@ def get_asset(asset):
     rex = re.compile("^{}(\.geneva-*trading.com)?".format(asset))
     asset = db.hosts.find_one({'minion': rex})
     pillar = pillar_db.pillar.find_one({'minion': rex})
+
     if asset:
         del asset['_id']
         if pillar:
             asset.update(pillar)
         if serialize:
             asset=serialize_dict(asset)
+    else:
+        asset = {}
+
+    for field in asset:
+        if isinstance(asset[field], datetime.dateime):
+            asset[field] = asset[field].strfrtime('%Y%m%dD%H:%M:%S')
+        
+        elif isinstance(asset[field], datetime.date):
+            asset[field] = asset[field].strfrtime('%Y%m%d')
+
     if 'yaml' in output:
         return yaml.safe_dump(asset, default_flow_style=False), 200, {'Content-Type': 'application/x-yaml; charset=utf-8'}
     elif 'csv' in output:
@@ -88,6 +99,7 @@ def get_asset(asset):
             csv_asset += '{},'.format(v)
         csv_asset = header.rstrip(',')+"\n"+csv_asset.rstrip(',')
         return csv_asset
+
     return json.dumps(asset, indent=1), 200, {'Content-Type': 'application/json; charset=utf-8'}
 
 
@@ -116,14 +128,22 @@ def get_assets():
     for host in pillar_db.pillar.find({}):
         pillars[host['_id']] = host
 
-    for x in results:
-        del x['_id']
-        if x.get('minion', '') in pillars:
-            x.update(pillars[x['minion']])
+    for asset in results:
+        del asset['_id']
+        if asset.get('minion', '') in pillars:
+            asset.update(pillars[asset['minion']])
+
+        for field in asset:
+            if isinstance(asset[field], datetime.dateime):
+                asset[field] = asset[field].strfrtime('%Y%m%dD%H:%M:%S')
+
+            elif isinstance(asset[field], datetime.date):
+                asset[field] = asset[field].strfrtime('%Y%m%d')
 
         if serialize:
-            x=serialize_dict(x)
-        assets.append(x)
+            asset = serialize_dict(asset)
+        assets.append(asset)
+
     if 'yaml' in output:
         return yaml.safe_dump(assets, default_flow_style=False), 200, {'Content-Type': 'application/x-yaml; charset=utf-8'}
     elif 'kv' in output:
