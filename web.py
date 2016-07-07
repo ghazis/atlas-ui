@@ -104,7 +104,7 @@ def get_asset(asset):
         asset = {}
 
     for field in asset:
-        if isinstance(asset[field], datetime.dateime):
+        if isinstance(asset[field], datetime.datetime):
             asset[field] = asset[field].strfrtime('%Y%m%dD%H:%M:%S')
         
         elif isinstance(asset[field], datetime.date):
@@ -155,7 +155,7 @@ def get_assets():
             asset.update(pillars[asset['minion']])
 
         for field in asset:
-            if isinstance(asset[field], datetime.dateime):
+            if isinstance(asset[field], datetime.datetime):
                 asset[field] = asset[field].strfrtime('%Y%m%dD%H:%M:%S')
 
             elif isinstance(asset[field], datetime.date):
