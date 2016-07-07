@@ -280,10 +280,16 @@ function($scope, assets, $http, $window, $location) {
 
 	$scope.getProfile = function() {
 		$http.get('/api/profiles/').success(function(data) {
-			$scope.homepage_fields = JSON.parse(data['fields']);
-			$scope.authorizedUser = true;
 			if (data['_id'] == 'anonymous_user'){
+				$scope.homepage_fields = JSON.parse(data['default_fields']);
 				$scope.authorizedUser = false;
+			} else {
+				if (data['custom_fields'] != undefined){
+					$scope.homepage_fields = JSON.parse(data['custom_fields']);
+				} else{
+					$scope.homepage_fields = JSON.parse(data['default_fields']);
+				}
+				$scope.authorizedUser = true;
 			}
 			//$scope.authorizedUser = true;
 		});

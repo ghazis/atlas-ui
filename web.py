@@ -220,14 +220,13 @@ def get_runs():
 
 @app.route("/profiles/", methods=['GET', 'POST'])
 def get_profiles():
-    if db.profiles.count() == 0:
-        db.profiles.update(
-            {'_id': g.user},
-            {'$set': {
-                'fields' : '["host", "roles", "tags", "env_tag", "ipv4", "ilo_ip", "serialnumber", "productname", "osrelease", "allowed_groups"]'
-                }
-             },
-            upsert=True)
+    db.profiles.update(
+        {'_id': g.user},
+        {'$set': {
+            'default_fields' : '["host", "allowed_groups", "env_tag", "ilo_ip", "ipv4", "osrelease", "productname", "roles", "serialnumber", "tags"]'
+            }
+         },
+        upsert=True)
     if request.method =="GET":
         for i in db.profiles.find({'_id': g.user}):
             res = i
@@ -238,7 +237,7 @@ def get_profiles():
         print type(layout)
         db.profiles.update(
             {'_id': g.user},
-                {'$set': {"fields": layout}},
+                {'$set': {"custom_fields": layout}},
             upsert=False)
         return layout
 
