@@ -96,7 +96,6 @@ function($scope, assets, $http, $window, $location) {
 	$scope.this_id = $location.search()['id'];
 	$scope.possible_homepage_fields = [];
 	$scope.selected_homepage_fields = {};
-	$scope.homepage_fields = ['host', 'roles', 'tags', 'env_tag', 'ipv4', 'ilo_ip', 'serialnumber', 'productname', 'osrelease', 'allowed_groups'];
 	//possible values lists
 	$scope.acc_lists = {
 		admin_users: ["pkusch"],
@@ -279,6 +278,17 @@ function($scope, assets, $http, $window, $location) {
 	    });
 	};
 
+	$scope.getProfile = function() {
+		$http.get('/api/profiles/').success(function(data) {
+			$scope.homepage_fields = JSON.parse(data['fields']);
+			$scope.authorizedUser = true;
+			if (data['_id'] == 'anonymous_user'){
+				$scope.authorizedUser = false;
+			}
+			//$scope.authorizedUser = true;
+		});
+	}
+
 	//populates possible_fields_array for homepage layout modification
 	$scope.createPossibleFieldsArray = function (arr) {
 		for(var i=0; i<arr.length; i++){
@@ -328,13 +338,12 @@ function($scope, assets, $http, $window, $location) {
 	          method  : 'POST',
 	          url     : '/api/profiles/',
 	          data    : $.param({
-	        	layout: $scope.selected_homepage_fields,
+	        	layout: angular.toJson($scope.homepage_fields)
 	        	//val: $scope.updated_val
 	        }),
 	          headers : {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'} 
 	         })
 	          .success(function(data) {
-	          	// console.log("worked");
 	          }).error(function(data){
 	          	// console.log("did not work");
 	          })
@@ -543,6 +552,7 @@ function($scope, assets, $http, $window, $location) {
 
 	//ensures assets are not added to table multiple times by pressing back button
 	if(get_counter === 0){
+		$window.onload = $scope.getProfile();
 		$window.onload = $scope.addAssets();
 		$window.onload = $scope.addEditableAssets();
 		get_counter += 1;

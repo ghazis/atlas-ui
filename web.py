@@ -36,7 +36,7 @@ logger = gtLogger(config['log_file'], debug=enable_debug_logging).getLogger()
 
 
 def _log_request():
-    g.user = request.headers.get('gtuser', 'unknown-user')
+    g.user = request.headers.get('gtuser', 'anonymous_user')
     g.request_id = "{}_{}".format(g.user, datetime.datetime.now().strftime('%Y%m%dD%H%M%S'))
     logger.info('request_id="{}" user="{}" headers="{}" method="{}" request_url="{}"'.format(g.request_id, g.user, dict(request.headers), request.method, request.full_path))
 
@@ -47,7 +47,6 @@ def _handle_exception(e):
     logger.error("exception='{}' stack_trace='{}'".format(e,
         ''.join([ x.replace('\\n', '\n') for x in traceback.format_list(traceback.extract_tb(exc_traceback, limit=10))]).strip()))
     return 'Error : {}'.format(e), 500
-
 
 
 @app.route('/groups/<group>')
@@ -221,31 +220,24 @@ def get_runs():
 
 @app.route("/profiles/", methods=['GET', 'POST'])
 def get_profiles():
-    gtuser = request.headers.get('gt-user')
-    if gtuser == None:
-        gtuser = "anonymous_user"
-    #if db.profiles.count() == 0:
-    db.profiles.update(
-        {'_id': gtuser},
-        {'$set': {
-            'fields' : "['host', 'roles', 'tags', 'env_tag', 'ipv4', 'ilo_ip', 'serialnumber', 'productname', 'osrelease', 'allowed_groups']"
-            }
-         },
-        upsert=True)
+    if db.profiles.count() == 0:
+        db.profiles.update(
+            {'_id': g.user},
+            {'$set': {
+                'fields' : '["host", "roles", "tags", "env_tag", "ipv4", "ilo_ip", "serialnumber", "productname", "osrelease", "allowed_groups"]'
+                }
+             },
+            upsert=True)
     if request.method =="GET":
-        for i in db.profiles.find({'_id': 'anonymous_user'}):
+        for i in db.profiles.find({'_id': g.user}):
             res = i
-        if request.headers.get('gt-user'):
-            return res
-        else:
-            print res
             return json.dumps(res)
     if request.method =="POST":
         params = request.form
         layout = params['layout']
         print type(layout)
         db.profiles.update(
-            {'_id': gtuser},
+            {'_id': g.user},
                 {'$set': {"fields": layout}},
             upsert=False)
         return layout
