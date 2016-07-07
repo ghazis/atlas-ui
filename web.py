@@ -33,8 +33,10 @@ if config.get('log_level', 'info').lower() == 'debug':
 logger = gtLogger(config['log_file'], debug=enable_debug_logging).getLogger()
 
 
-def _log_request(_request):
-    logger.info(_request)
+def _log_request():
+    flask.g['user'] = request.headers.get('gtuser', 'unknown-user')
+    flask.g['request_id'] = "{}_{}".format(flask.g['user'], datetime.datetime.now().strftime('%Y%m%dD%H%M%S'))
+    logger.info('request_id="{}" user="{}" headers="{}" method="{}" request_url="{}"'.format(flask.g['request_id'], flask.g['user'], dict(request.headers), requeset.method, request.url))
 
 @app.route('/groups/<group>')
 def get_group(group):
@@ -236,6 +238,6 @@ def get_profiles():
     
 
 if __name__ == '__main__':
-    app.before_first_request(_log_request, request)
+    app.before_first_request(_log_request)
     app.run(debug=True,port=int(config['port']),host="0.0.0.0")
 
