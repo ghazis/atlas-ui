@@ -36,7 +36,7 @@ logger = gtLogger(config['log_file'], debug=enable_debug_logging).getLogger()
 def _log_request():
     g.user = request.headers.get('gtuser', 'unknown-user')
     g.request_id = "{}_{}".format(g.user, datetime.datetime.now().strftime('%Y%m%dD%H%M%S'))
-    logger.info('request_id="{}" user="{}" headers="{}" method="{}" request_url="{}"'.format(g.request_id, g.user, dict(request.headers), requeset.method, request.url))
+    logger.info('request_id="{}" user="{}" headers="{}" method="{}" request_url="{}"'.format(g.request_id, g.user, dict(request.headers), request.method, request.url))
 
 
 @app.errorhandler(Exception)
