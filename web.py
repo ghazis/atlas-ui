@@ -102,9 +102,6 @@ def get_networks():
 
 @app.route("/assets/")
 def get_assets():
-    test = db.profiles.find()
-    for i in test:
-        print i
     print request.headers.get('gtuser')
     assets = []
     pillars = {}
@@ -185,26 +182,34 @@ def get_runs():
 
 @app.route("/profiles/", methods=['GET', 'POST'])
 def get_profiles():
+    gtuser = request.headers.get('gt-user')
+    if gtuser == None:
+        gtuser = "anonymous_user"
+    #if db.profiles.count() == 0:
+    db.profiles.update(
+        {'_id': gtuser},
+        {'$set': {
+            'fields' : "['host', 'roles', 'tags', 'env_tag', 'ipv4', 'ilo_ip', 'serialnumber', 'productname', 'osrelease', 'allowed_groups']"
+            }
+         },
+        upsert=True)
     if request.method =="GET":
-        if request.headers.get('gtuser'):
-            return 'True'
+        for i in db.profiles.find({'_id': 'anonymous_user'}):
+            res = i
+        if request.headers.get('gt-user'):
+            return res
         else:
-            return 'False'
+            print res
+            return json.dumps(res)
     if request.method =="POST":
         params = request.form
         layout = params['layout']
-        print layout
-        return 'layout'
-        #val = json.loads(params['val'])
-##        for k,v in val.iteritems():
-##            print k
-##            print v
-##            pillar_db.pillar.update(
-##                {'_id': host},
-##                {'$set': {k: v}},
-##                upsert=False)
-##            logger.info(host + "'s information has been modified and is now set as " + v)
-##        return str(params)
+        print type(layout)
+        db.profiles.update(
+            {'_id': gtuser},
+                {'$set': {"fields": layout}},
+            upsert=False)
+        return layout
         
     
 
