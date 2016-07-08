@@ -13,7 +13,7 @@ RC=$((RC+$?))
 systemctl restart atlas-webservice
 RC=$((RC+$?))
 
-[[ ${RC} -ne 0 ]] && logger -s -t atlas-webservice "critical_error: Ran into issue while deploying service"
+[[ ${RC} -ne 0 ]] && logger -s -t atlas-webservice "critical_warning: Ran into issue while deploying atlas/${branch} service"
 
 exit ${RC}
 
