@@ -218,28 +218,28 @@ def get_runs():
         jobs.append(jobresult)
     return json.dumps(jobs, indent=1, default=json_util.default), 200, {'Content-Type': 'application/json; charset=utf-8'}
 
-@app.route("/profiles/", methods=['GET', 'POST'])
+@app.route("/profiles/", methods=['GET'])
 def get_profiles():
     db.profiles.update(
         {'_id': g.user},
         {'$set': {
-            'default_fields' : '["host", "allowed_groups", "env_tag", "ilo_ip", "ipv4", "osrelease", "productname", "roles", "serialnumber", "tags"]'
+            'default_fields' : ["host", "allowed_groups", "env_tag", "ilo_ip", "ipv4", "osrelease", "productname", "roles", "serialnumber", "tags"]
             }
          },
         upsert=True)
-    if request.method =="GET":
-        for i in db.profiles.find({'_id': g.user}):
-            res = i
-            return json.dumps(res)
-    if request.method =="POST":
-        params = request.form
-        layout = params['layout']
-        print type(layout)
-        db.profiles.update(
-            {'_id': g.user},
-                {'$set': {"custom_fields": layout}},
-            upsert=False)
-        return layout
+    for i in db.profiles.find({'_id': g.user}):
+        res = i
+    return json.dumps(res)
+
+@app.route("/profiles/", methods=['POST'])
+def set_profiles():
+    params = request.form
+    layout = params['layout']
+    db.profiles.update(
+        {'_id': g.user},
+            {'$set': {"custom_fields": json.loads(layout)}},
+        upsert=False)
+    return layout
 
 
 if __name__ == '__main__':
