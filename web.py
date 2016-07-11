@@ -104,10 +104,10 @@ def get_asset(asset):
 
     for field in asset:
         if isinstance(asset[field], datetime.datetime):
-            asset[field] = asset[field].strfrtime('%Y%m%dD%H:%M:%S')
+            asset[field] = asset[field].strftime('%Y%m%dD%H:%M:%S')
         
         elif isinstance(asset[field], datetime.date):
-            asset[field] = asset[field].strfrtime('%Y%m%d')
+            asset[field] = asset[field].strftime('%Y%m%d')
 
     if 'yaml' in output:
         return yaml.safe_dump(asset, default_flow_style=False), 200, {'Content-Type': 'application/x-yaml; charset=utf-8'}
@@ -152,10 +152,10 @@ def get_assets():
 
         for field in asset:
             if isinstance(asset[field], datetime.datetime):
-                asset[field] = asset[field].strfrtime('%Y%m%dD%H:%M:%S')
+                asset[field] = asset[field].strftime('%Y%m%dD%H:%M:%S')
 
             elif isinstance(asset[field], datetime.date):
-                asset[field] = asset[field].strfrtime('%Y%m%d')
+                asset[field] = asset[field].strftime('%Y%m%d')
 
         if serialize:
             asset = serialize_dict(asset)
