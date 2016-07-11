@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from flask import Flask, request
+from flask import Flask, request, g
 from flask.ext.cors import CORS
 from gtCommon import gtLogger
 from bson import json_util
@@ -12,9 +12,11 @@ import re
 import json
 import pymongo
 import types
+import sys
 import logging
 import datetime
 import itertools
+import traceback
 app = Flask(__name__)
 CORS(app)
 
@@ -27,6 +29,24 @@ client[config['mongo_atlas_db']].authenticate(config['mongo_user'], config['mong
 client[config['mongo_salt_db']].authenticate(config['mongo_user'], config['mongo_pw'])
 db = client[config['mongo_atlas_db']]
 pillar_db = client[config['mongo_salt_db']]
+enable_debug_logging = False
+if config.get('log_level', 'info').lower() == 'debug':
+    enable_debug_logging = True
+logger = gtLogger(config['log_file'], debug=enable_debug_logging).getLogger()
+
+
+def _log_request():
+    g.user = request.headers.get('gtuser', 'anonymous_user')
+    g.request_id = "{}_{}".format(g.user, datetime.datetime.now().strftime('%Y%m%dD%H%M%S'))
+    logger.info('request_id="{}" user="{}" headers="{}" method="{}" request_url="{}"'.format(g.request_id, g.user, dict(request.headers), request.method, request.full_path))
+
+
+@app.errorhandler(Exception)
+def _handle_exception(e):
+    exc_type, exc_value, exc_traceback = sys.exc_info()
+    logger.error("exception='{}' stack_trace='{}'".format(e,
+        ''.join([ x.replace('\\n', '\n') for x in traceback.format_list(traceback.extract_tb(exc_traceback, limit=10))]).strip()))
+    return 'Error : {}'.format(e), 500
 
 
 @app.route('/groups/<group>')
@@ -72,12 +92,23 @@ def get_asset(asset):
     rex = re.compile("^{}(\.geneva-*trading.com)?".format(asset))
     asset = db.hosts.find_one({'minion': rex})
     pillar = pillar_db.pillar.find_one({'minion': rex})
+
     if asset:
         del asset['_id']
         if pillar:
             asset.update(pillar)
         if serialize:
             asset=serialize_dict(asset)
+    else:
+        asset = {}
+
+    for field in asset:
+        if isinstance(asset[field], datetime.datetime):
+            asset[field] = asset[field].strfrtime('%Y%m%dD%H:%M:%S')
+        
+        elif isinstance(asset[field], datetime.date):
+            asset[field] = asset[field].strfrtime('%Y%m%d')
+
     if 'yaml' in output:
         return yaml.safe_dump(asset, default_flow_style=False), 200, {'Content-Type': 'application/x-yaml; charset=utf-8'}
     elif 'csv' in output:
@@ -88,6 +119,7 @@ def get_asset(asset):
             csv_asset += '{},'.format(v)
         csv_asset = header.rstrip(',')+"\n"+csv_asset.rstrip(',')
         return csv_asset
+
     return json.dumps(asset, indent=1), 200, {'Content-Type': 'application/json; charset=utf-8'}
 
 
@@ -102,6 +134,7 @@ def get_networks():
 
 @app.route("/assets/")
 def get_assets():
+    test = db.profiles.find()
     assets = []
     pillars = {}
     serialize = request.args.get('serialize', False)
@@ -112,14 +145,22 @@ def get_assets():
     for host in pillar_db.pillar.find({}):
         pillars[host['_id']] = host
 
-    for x in results:
-        del x['_id']
-        if x.get('minion', '') in pillars:
-            x.update(pillars[x['minion']])
+    for asset in results:
+        del asset['_id']
+        if asset.get('minion', '') in pillars:
+            asset.update(pillars[asset['minion']])
+
+        for field in asset:
+            if isinstance(asset[field], datetime.datetime):
+                asset[field] = asset[field].strfrtime('%Y%m%dD%H:%M:%S')
+
+            elif isinstance(asset[field], datetime.date):
+                asset[field] = asset[field].strfrtime('%Y%m%d')
 
         if serialize:
-            x=serialize_dict(x)
-        assets.append(x)
+            asset = serialize_dict(asset)
+        assets.append(asset)
+
     if 'yaml' in output:
         return yaml.safe_dump(assets, default_flow_style=False), 200, {'Content-Type': 'application/x-yaml; charset=utf-8'}
     elif 'kv' in output:
@@ -146,13 +187,10 @@ def set_pillars():
     host = params['host']
     val = json.loads(params['val'])
     for k,v in val.iteritems():
-        print k
-        print v
         pillar_db.pillar.update(
             {'_id': host},
             {'$set': {k: v}},
             upsert=False)
-        logger.info(host + "'s information has been modified and is now set as " + v)
     return str(params)
 
 
@@ -179,7 +217,39 @@ def get_runs():
         jobs.append(jobresult)
     return json.dumps(jobs, indent=1, default=json_util.default), 200, {'Content-Type': 'application/json; charset=utf-8'}
 
+@app.route("/profiles/", methods=['GET'])
+def get_profiles():
+    db.profiles.update(
+        {'_id': g.user},
+        {'$set': {
+            'default_fields' : ["host", "allowed_groups", "env_tag", "ilo_ip", "ipv4", "osrelease", "productname", "roles", "serialnumber", "tags"]
+            }
+         },
+        upsert=True)
+    for i in db.profiles.find({'_id': g.user}):
+        res = i
+    return json.dumps(res)
+
+@app.route("/profiles/", methods=['POST'])
+def set_profiles():
+    params = request.form
+    fields = params['fields']
+    layout = params['layout']
+    db.profiles.update(
+        {'_id': g.user},
+            {'$set': {"custom_fields": json.loads(fields), "checkbox_list": json.loads(layout)}},
+        upsert=False)
+    return layout
+
+@app.route("/views/", methods=['GET'])
+def get_view():
+    fields = {}
+    for i in db.config.find({'_type': 'field'}):
+        fields[i['name']] = i
+    return json.dumps(fields, indent=1, default=json_util.default)
+
+
 if __name__ == '__main__':
-    logger = gtLogger(config['log_file'], debug=True).getLogger()
+    app.before_request(_log_request)
     app.run(debug=True,port=int(config['port']),host="0.0.0.0")
 

@@ -10,4 +10,6 @@ mongo_atlas_db: atlas-dev
 mongo_salt_db: salt-dev
 mongo_user: atlas_reader
 mongo_pw: some_password
-log_file: some_file
+
+log_file: /var/log/gt/atlas-webservice.log
+log_level: info

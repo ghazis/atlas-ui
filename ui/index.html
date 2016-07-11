@@ -9,7 +9,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>Assets</title>
+    <title>GT Atlas</title>
 
     <!-- Bootstrap Core CSS -->
     <link href="/bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -19,6 +19,9 @@
 
     <!-- Custom Fonts -->
     <link href="/bower_components/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs/dt-1.10.12/datatables.min.css"/>
+
 
 </head>
 
@@ -36,13 +39,15 @@
     <!-- Bootstrap Core JavaScript -->
     <script src="/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
 
+    <script type="text/javascript" src="https://cdn.datatables.net/v/bs/dt-1.10.12/datatables.min.js"></script>
+
 
     <script type="text/ng-template" id="/home.ejs">
         <br></br>
         <div class="col-lg-12">
             <div class="panel panel-default">
                 <div class="panel-heading text-center">
-                        Assets
+                        GT Atlas
                 </div>
                 <div class="panel-body">
                     <div class="input-group">
@@ -50,147 +55,69 @@
                         <input type="text" class="form-control" placeholder="Filter Table" ng-model="search">
                     </div>
                     <br></br>
+                    <button class="btn btn-primary btn-sm" ng-if="authorizedUser" data-toggle="modal" data-target="#myModal">Add/Remove Fields</button>
+                    <br></br>
+                    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                    <h4 class="modal-title" id="myModalLabel">Displayed Fields</h4>
+                                </div>
+                                <label>&nbsp</label>
+                                <div class="form-group col-xs-offset-1">
+                                    <label>Please Select Which Fields You Would Like Displayed</label>
+                                    <div class="checkbox" ng-repeat="field in possible_homepage_fields">
+                                        <div class="col-md-4">
+                                            <input type="checkbox" value="field" ng-model="selected_homepage_fields[field]">{{field}}</input>
+                                        </div>
+                                    </div>
+                                </div>
+                                <label>&nbsp</label>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                    <button type="button" class="btn btn-primary" ng-click="saveHomepageLayout()" data-dismiss="modal">Save changes</button>
+                                </div>
+                            </div>
+                            <!-- /.modal-content -->
+                        </div>
+                        <!-- /.modal-dialog -->
+                    </div>
                     <div class="table-responsive">
-                        <table class="table table-striped table-bordered table-hover text-center">
+                        <h2 class="text-center" ng-if="homepage_fields.length==0">Please Choose Fields To Display</h4>
+                        <table id="myTable" class="table table-striped table-bordered table-hover text-center" ng-if="homepage_fields.length>0">
                             <thead>
                                 <tr>
                                     <th style="text-align:center">Details</th>
-                                    <th style="text-align:center" ng-click="sortType='host';sortReverse=!sortReverse">
-                                        <a href="">Host</a>
-                                        <span ng-show="sortType == 'host' && !sortReverse" class="fa fa-caret-down"></span>
-                                        <span ng-show="sortType == 'host' && sortReverse" class="fa fa-caret-up"></span>
-                                    </th>
-                                    <th style="text-align:center" ng-click="sortType='roles';sortReverse=!sortReverse">
-                                    <div class="row">
-                                        <div class="col-xs-6"><a href="">Roles</a></div>
-                                            <div><span ng-show="sortType == 'roles' && !sortReverse" class="fa fa-caret-down"></span>
-                                            <span ng-show="sortType == 'roles' && sortReverse" class="fa fa-caret-up"></span></div>
-                                    </div>
-                                    </th>
-                                    <th style="text-align:center" ng-click="sortType='tags';sortReverse=!sortReverse">
-                                    <a href="">Tags</a>
-                                        <span ng-show="sortType == 'tags' && !sortReverse" class="fa fa-caret-down"></span>
-                                        <span ng-show="sortType == 'tags' && sortReverse" class="fa fa-caret-up"></span>
-                                    </th>
-                                    <th style="text-align:center" ng-click="sortType='env_tag';sortReverse=!sortReverse">
-                                    <a href="">Env Tag</a>
-                                        <span ng-show="sortType == 'env_tag' && !sortReverse" class="fa fa-caret-down"></span>
-                                        <span ng-show="sortType == 'env_tag' && sortReverse" class="fa fa-caret-up"></span>
-                                    </th>
-                                    <th style="text-align:center" ng-click="sortType='ipv4';sortReverse=!sortReverse">
-                                    <a href="">IPV4</a>
-                                        <span ng-show="sortType == 'ipv4' && !sortReverse" class="fa fa-caret-down"></span>
-                                        <span ng-show="sortType == 'ipv4' && sortReverse" class="fa fa-caret-up"></span>
-                                    </th>
-                                    <th style="text-align:center" ng-click="sortType='ilo_ip';sortReverse=!sortReverse">
-                                    <a href="">ILO IP</a>
-                                        <span ng-show="sortType == 'ilo_ip' && !sortReverse" class="fa fa-caret-down"></span>
-                                        <span ng-show="sortType == 'ilo_ip' && sortReverse" class="fa fa-caret-up"></span>
-                                    </th>
-                                    <th style="text-align:center" ng-click="sortType='serialnumber';sortReverse=!sortReverse">
-                                    <a href="">Serial Number</a>
-                                        <span ng-show="sortType == 'serialnumber' && !sortReverse" class="fa fa-caret-down"></span>
-                                        <span ng-show="sortType == 'serialnumber' && sortReverse" class="fa fa-caret-up"></span>
-                                    </th>
-                                    <th style="text-align:center" ng-click="sortType='productname';sortReverse=!sortReverse">
-                                    <a href="">Product Name</a>
-                                        <span ng-show="sortType == 'productname' && !sortReverse" class="fa fa-caret-down"></span>
-                                        <span ng-show="sortType == 'productname' && sortReverse" class="fa fa-caret-up"></span>
-                                    </th>
-                                    <th style="text-align:center" ng-click="sortType='osrelease';sortReverse=!sortReverse">
-                                    <a href="">OS Release</a>
-                                        <span ng-show="sortType == 'osrelease' && !sortReverse" class="fa fa-caret-down"></span>
-                                        <span ng-show="sortType == 'osrelease' && sortReverse" class="fa fa-caret-up"></span>
-                                    </th>
-                                    <th style="text-align:center" ng-click="sortType='allowed_groups';sortReverse=!sortReverse">
-                                    <a href="">Allowed Groups</a>
-                                        <span ng-show="sortType == 'allowed_groups' && !sortReverse" class="fa fa-caret-down"></span>
-                                        <span ng-show="sortType == 'allowed_groups' && sortReverse" class="fa fa-caret-up"></span>
+                                    <th style="text-align:center" ng-repeat="field in homepage_fields track by $index">
+                                        <a href="" ng-click="setSortType(field);">{{field}}</a>
+                                        <span ng-show="sortType == field && !sortReverse" class="fa fa-caret-down"></span>
+                                        <span ng-show="sortType == field && sortReverse" class="fa fa-caret-up"></span>
                                     </th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr ng-repeat="asset in assets | orderBy:sortType:sortReverse | filter:search">
+                                <tr ng-repeat="asset in assets | orderBy:sortType:sortReverse | filter:search track by $index">
                                     <td class="text-center col-md-1">{{   }}<a href='#/asset?id={{asset.minion}}'><button type="button" class="btn btn-primary btn-circle"><i class="fa fa-list"></i>
-                                </button></a>
-                                    <td>{{asset.host}}</td>
-                                    <td>
-                                        <table ng-if="checkType(asset['roles'])==='str'">
-                                         <tr>
-                                            <th class="text-center"></th>
-                                         </tr>
-                                         <tr>
-                                            <td>{{ asset['roles'] }}</td>
-                                         </tr>
-                                        </table>
-                                    <table ng-if="checkType(asset['roles'])==='arr'">
-                                         <tr>
-                                            <th class="text-center"></th>
-                                         </tr>
-                                         <tr ng-repeat="item in asset['roles'] track by $index">
-                                            <td>{{ item }}</td>
-                                         </tr>
-                                        </table>
+                                    </button></a>
+                                    <td ng-repeat='field in homepage_fields'>
+                                        <div ng-if="checkType(asset[field])=='str'" >{{asset[field]}}</div>
+                                        <div ng-if="checkType(asset[field])=='arr'" >
+                                            <table>
+                                                <tr ng-repeat="item in asset[field]">
+                                                    <td>{{ item }}</td>
+                                                </tr>
+                                            </table>
+                                        </div>
                                     </td>
-                                    <td>
-                                        <table ng-if="checkType(asset['tags'])==='str'">
-                                         <tr>
-                                            <th class="text-center"></th>
-                                         </tr>
-                                         <tr>
-                                            <td>{{ asset['tags'] }}</td>
-                                         </tr>
+                                    <!--<td ng-repeat='field in homepage_fields'>{{asset[field]}}</td>
+                                    <td ng-if="checkType(asset[field])=='arr'" ng-repeat='field in homepage_fields'>
+                                        <table>
+                                            <tr ng-repeat="item in asset[field]">
+                                                <td>{{ item }}</td>
+                                            </tr>
                                         </table>
-                                    <table ng-if="checkType(asset['tags'])==='arr'">
-                                         <tr>
-                                            <th class="text-center"></th>
-                                         </tr>
-                                         <tr ng-repeat="item in asset['tags'] track by $index">
-                                            <td>{{ item }}</td>
-                                         </tr>
-                                        </table>
-                                    </td>
-                                    <td>{{asset.env_tag}}</td>
-                                    <td>
-                                        <table ng-if="checkType(asset['ipv4'])==='str'">
-                                         <tr>
-                                            <th class="text-center"></th>
-                                         </tr>
-                                         <tr>
-                                            <td>{{ asset['ipv4'] }}</td>
-                                         </tr>
-                                        </table>
-                                    <table ng-if="checkType(asset['ipv4'])==='arr'">
-                                         <tr>
-                                            <th class="text-center"></th>
-                                         </tr>
-                                         <tr ng-repeat="item in asset['ipv4'] track by $index">
-                                            <td>{{ item }}</td>
-                                         </tr>
-                                        </table>
-                                    </td>
-                                    <td>{{asset.ilo_ip}}</td>
-                                    <td>{{asset.serialnumber}}</td>
-                                    <td>{{asset.productname}}</td>
-                                    <td>{{asset.osrelease}}</td>
-                                    <td>
-                                        <table ng-if="checkType(asset['allowed_groups'])==='str'">
-                                         <tr>
-                                            <th class="text-center"></th>
-                                         </tr>
-                                         <tr>
-                                            <td>{{ asset['allowed_groups'] }}</td>
-                                         </tr>
-                                        </table>
-                                    <table ng-if="checkType(asset['allowed_groups'])==='arr'">
-                                         <tr>
-                                            <th class="text-center"></th>
-                                         </tr>
-                                         <tr ng-repeat="item in asset['allowed_groups'] track by $index">
-                                            <td>{{ item }}</td>
-                                         </tr>
-                                        </table>
-                                    </td>
+                                    </td>-->
                                 </tr>
                             </tbody>
                         </table>
@@ -204,7 +131,8 @@
         <div id="custom-page-wrapper" ng-repeat="asset in this_asset track by $index">
             <div class="panel panel-default {{envClass}}">
                 <div class="panel-heading text-center">
-                    {{env}}{{asset.host}}
+                    {{env}}{{asset.host}}<br>
+                    {{update_string}}{{time | date:'medium'}}
                 </div>
             </div>
             <div class="col-lg-6" ng-repeat="asset in this_asset track by $index">
@@ -268,7 +196,7 @@
                             <table class="table">
 
                                 <tbody ng-repeat="(key, val) in pillar">
-                                    <tr ng-class="colorRow(val,$index,false)" ng-if="key!='role'">
+                                    <tr ng-class="colorRow(val,$index,false)">
                                         <td>{{key}}</td>
                                         <td ng-if="checkType(val)==='str'">
                                         {{existing_lists[key]}}
@@ -284,11 +212,12 @@
                                         <td ng-if="checkType(val)==='str'">
                                         <div class="row">
                                             <div class="col-xs-6">
-                                                <form ng-submit="updateVal(key, val, index, value, false, false)" method="POST">
+                                                <form id="strform" ng-submit="updateVal(key, val, index, value, false, false)" method="POST">
                                                     <input class="form-control" type="hidden" name="host" value={{pillar._id}}>
                                                     <input class="form-control" type="hidden" name="key" value={{key}}>
                                                     <div class="col-xs-1">
-                                                    <button type="submit" class="btn btn-primary btn-xs center-block">Change</button>
+                                                    <button ng-if="pillar_attrs[key]['editable']==false" disabled type="submit" class="btn btn-primary btn-xs center-block">Change</button>
+                                                    <button ng-if="pillar_attrs[key]['editable']" type="submit" class="btn btn-primary btn-xs center-block">Change</button>
                                                     </div>
                                                 </form>
                                             </div>
@@ -301,7 +230,8 @@
                                                     <input class="form-control" type="hidden" name="host" value={{pillar._id}}>
                                                     <input class="form-control" type="hidden" name="key" value={{key}}>
                                                     <div class="col-xs-1">
-                                                    <button class="btn btn-primary btn-xs center-block" id="{{'addBut'+$index}}" type="submit">&nbsp&nbsp&nbspAdd&nbsp&nbsp&nbsp</button>
+                                                    <button ng-if="pillar_attrs[key]['editable']==false" disabled class="btn btn-primary btn-xs center-block" id="{{'addBut'+$index}}" type="submit">&nbsp&nbsp&nbspAdd&nbsp&nbsp&nbsp</button>
+                                                    <button ng-if="pillar_attrs[key]['editable']" class="btn btn-primary btn-xs center-block" id="{{'addBut'+$index}}" type="submit">&nbsp&nbsp&nbspAdd&nbsp&nbsp&nbsp</button>
                                                     </div>
                                                 </form>
                                             </div>
@@ -317,7 +247,8 @@
                                                     <input class="form-control" type="hidden" name="host" value={{pillar._id}}>
                                                     <input class="form-control" type="hidden" name="key" value={{key}}>
                                                     <div class="col-xs-1">
-                                                        <button class="btn btn-primary btn-xs center-block" id="{{'remBut'+$index}}" type="submit">Remove</button>
+                                                        <button ng-if="pillar_attrs[key]['editable']==false" disabled  class="btn btn-primary btn-xs center-block" id="{{'remBut'+$index}}" type="submit">Remove</button>
+                                                        <button ng-if="pillar_attrs[key]['editable']" class="btn btn-primary btn-xs center-block" id="{{'remBut'+$index}}" type="submit">Remove</button>
                                                     </div>
                                                 </form>
                                             </div>
@@ -334,10 +265,11 @@
                                                 <option disabled value="">-- choose one --</option>
                                                 <option ng-repeat="item in acc_lists[key] track by $index" value="{&quot;{{item+','+key}}&quot;: {{$index}}}">{{item}}</option>
                                             </select>
-                                            <select  ng-if="checkType(val)==='str'" ng-model="selected" ng-change="collectElems(selected)">
+                                                <input ng-show="checkType(val)==='str'" form="strform" class="form-control input-sm" id="inputsm" type="text" name="val" ng-model="value" value=>
+                                            <!--<select ng-if="checkType(val)==='str'" ng-model="selected" ng-change="collectElems(selected)">
                                                 <option disabled value="">-- choose one --</option>
                                                 <option ng-repeat="item in acc_lists[key] track by $index" value="{&quot;{{item+','+key}}&quot;: {{$index}}}">{{item}}</option>
-                                            </select> 
+                                            </select>-->
                                         </div>
                                         </td>
                                         </div>
