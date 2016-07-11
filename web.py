@@ -191,7 +191,6 @@ def set_pillars():
             {'_id': host},
             {'$set': {k: v}},
             upsert=False)
-        logger.info(host + "'s information has been modified and is now set as " + v)
     return str(params)
 
 
@@ -234,12 +233,20 @@ def get_profiles():
 @app.route("/profiles/", methods=['POST'])
 def set_profiles():
     params = request.form
+    fields = params['fields']
     layout = params['layout']
     db.profiles.update(
         {'_id': g.user},
-            {'$set': {"custom_fields": json.loads(layout)}},
+            {'$set': {"custom_fields": json.loads(fields), "checkbox_list": json.loads(layout)}},
         upsert=False)
     return layout
+
+@app.route("/views/", methods=['GET'])
+def get_view():
+    fields = {}
+    for i in db.config.find({'_type': 'field'}):
+        fields[i['name']] = i
+    return json.dumps(fields, indent=1, default=json_util.default)
 
 
 if __name__ == '__main__':

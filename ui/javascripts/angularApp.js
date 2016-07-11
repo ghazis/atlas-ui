@@ -96,16 +96,6 @@ function($scope, assets, $http, $window, $location) {
 	$scope.this_id = $location.search()['id'];
 	$scope.possible_homepage_fields = [];
 	$scope.selected_homepage_fields = {};
-	//possible values lists
-	$scope.acc_lists = {
-		admin_users: ["pkusch"],
-		admin_groups: ["infrastructure_sg", "support_sg", "networking_sg", "kdb-users_sg", "risk_sg", "core-tech_sg", "core-dev_sg", "core-data_sg","rhone-developers_sg", "rhone-users_sg", "1729_sg", "armada_sg", "cdg_sg", "fxd_sg", "gamc_sg", "house_sg", "pmg_sg", "risk_sg", "team1_sg", "tmt_sg"],
-		env_tag: ["prod", "dev"],
-		allowed_groups: ["infrastructure_sg", "support_sg", "networking_sg", "kdb-users_sg", "risk_sg", "core-tech_sg", "core-dev_sg", "core-data_sg","rhone-developers_sg", "rhone-users_sg", "1729_sg", "armada_sg", "cdg_sg", "fxd_sg", "gamc_sg", "house_sg", "pmg_sg", "risk-sg", "team1_sg", "tmt_sg"],
-		allowed_users: ["splunksvc", "pcapd", "rhouse", "coredevsvc", "scilasvc", "refdatasvc", "rhonemdssvc", "rhonesvc", "rhonemdsdevsvc", "ocapsvc", "atlassvc"],
-		roles: ["admin", "dev", "mds", "nadmin", "kdb", "pcapd", "rhone"],
-	};
-	$scope.reset_acc_lists = JSON.stringify($scope.acc_lists);
 	//empty object which will contain all current values that are pulled from http call
 	$scope.existing_lists ={};
 
@@ -159,7 +149,11 @@ function($scope, assets, $http, $window, $location) {
 				if (id === asset['host']){
 					$scope.id = id;
 					for(var item in assets.pillars[i]){
-						if (item === "minion" || item === "_id"){
+						if (item === "minion" || item === "_id" || item === "role"){
+							continue;
+						}
+						//checks visible attr so pillar is not shown on page if set to false
+						if($scope.pillar_attrs[item]['visible']==false){
 							continue;
 						}
 						pillar_container[item] = assets.pillars[i][item] || "N/A";
@@ -259,7 +253,6 @@ function($scope, assets, $http, $window, $location) {
 				)
 			}
 			$scope.createPossibleFieldsArray(assets.assets);
-			$scope.temp_asset = assets.assets;
 	    });
 	};
 
@@ -279,7 +272,7 @@ function($scope, assets, $http, $window, $location) {
 	    });
 	};
 
-	$scope.getProfile = function() {
+	$scope.getProfileAndView = function() {
 		$http.get('/api/profiles/').success(function(data) {
 			if (data['_id'] == 'anonymous_user'){
 				$scope.homepage_fields = data['default_fields'];
@@ -287,13 +280,26 @@ function($scope, assets, $http, $window, $location) {
 			} else {
 				if (data['custom_fields'] != undefined){
 					$scope.homepage_fields = data['custom_fields'];
+					$scope.selected_homepage_fields = data['checkbox_list'];
 				} else{
 					$scope.homepage_fields = data['default_fields'];
 				}
 				$scope.authorizedUser = true;
 			}
-			console.log(data['default_fields']);
 			//$scope.authorizedUser = true;
+		});
+		$http.get('/api/views/').success(function(data) {
+			//possible values lists
+			$scope.acc_lists = {};
+			$scope.pillar_attrs = {};
+			for(var k in data){
+				$scope.acc_lists[data[k]['name']] = data[k]['values'];
+				var pillar_attrs = {};
+				pillar_attrs['visible'] = data[k]['visible'];
+				pillar_attrs['editable'] = data[k]['editable'];
+				$scope.pillar_attrs[data[k]['name']] = pillar_attrs;
+			}
+			$scope.reset_acc_lists = JSON.stringify($scope.acc_lists);
 		});
 	}
 
@@ -346,8 +352,8 @@ function($scope, assets, $http, $window, $location) {
 	          method  : 'POST',
 	          url     : '/api/profiles/',
 	          data    : $.param({
-	        	layout: angular.toJson($scope.homepage_fields)
-	        	//val: $scope.updated_val
+	        	fields: angular.toJson($scope.homepage_fields),
+	        	layout: angular.toJson($scope.selected_homepage_fields)
 	        }),
 	          headers : {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'} 
 	         })
@@ -363,7 +369,6 @@ function($scope, assets, $http, $window, $location) {
 		if(item != undefined){
 			obj = JSON.parse(item);
 			$scope.index = obj[Object.keys(obj)[0]];
-			//console.log($scope.index);
 			$scope.value = Object.keys(obj)[0].substr(0, Object.keys(obj)[0].indexOf(','));
 			$scope.key = Object.keys(obj)[0].substr(Object.keys(obj)[0].indexOf(',')+1);
 			$scope.limit = 0;
@@ -417,10 +422,10 @@ function($scope, assets, $http, $window, $location) {
 				}
 			}
 		} else {
-			if($scope.value!=undefined){
+			if(value!=undefined){
 				$scope.state = '{"info":$index%2==0,"danger":$index=={{master_index}}}';
-				$scope.existing_lists[key] = $scope.value;
-				$scope.value = undefined;
+				$scope.existing_lists[key] = value;
+				$value = undefined;
 			}
 		}
 		$scope.updated_host = $scope.id;
@@ -559,7 +564,7 @@ function($scope, assets, $http, $window, $location) {
 	}
 
 	//ensures assets are not added to table multiple times by pressing back button
-	$window.onload = $scope.getProfile();
+	$window.onload = $scope.getProfileAndView();
 	$scope.createPossibleFieldsArray(assets.assets);
 	if(get_counter === 0){
 		$window.onload = $scope.addAssets();
