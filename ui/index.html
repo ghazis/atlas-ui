@@ -205,7 +205,8 @@
                                         <div class="col-xs-6">
                                             <select required id="rem" ng-model="selected" ng-click="collectElems(selected, true)" ng-attr-size="{{val.length+1}}" multiple>
                                                 <option disabled value="">-- choose one --</option>
-                                                <option id="opt" ng-repeat="item in existing_lists[key] track by $index" value="{&quot;{{item+','+key}}&quot;: {{$index}}}">{{item}}</option>
+                                                <option ng-if="pillar_attrs[key]['editable']==false" disabled id="opt" ng-repeat="item in existing_lists[key] track by $index" value="{&quot;{{item+','+key}}&quot;: {{$index}}}">{{item}}</option>
+                                                <option ng-if="pillar_attrs[key]['editable']" id="opt" ng-repeat="item in existing_lists[key] track by $index" value="{&quot;{{item+','+key}}&quot;: {{$index}}}">{{item}}</option>
                                             </select> 
                                         </div>
                                         </td>
@@ -263,7 +264,8 @@
                                         <div class="col-xs-6">
                                             <select required id="add" ng-if="checkType(val)==='arr'" ng-model="selected" ng-click="collectElems(selected, false)" ng-attr-size="{{acc_lists[key].length+1}}" multiple>
                                                 <option disabled value="">-- choose one --</option>
-                                                <option ng-repeat="item in acc_lists[key] track by $index" value="{&quot;{{item+','+key}}&quot;: {{$index}}}">{{item}}</option>
+                                                <option ng-if="pillar_attrs[key]['editable']===false" disabled ng-repeat="item in acc_lists[key] track by $index" value="{&quot;{{item+','+key}}&quot;: {{$index}}}">{{item}}</option>
+                                                <option ng-if="pillar_attrs[key]['editable']" ng-repeat="item in acc_lists[key] track by $index" value="{&quot;{{item+','+key}}&quot;: {{$index}}}">{{item}}</option>
                                             </select>
                                                 <input ng-show="checkType(val)==='str'" form="strform" size="15" type="text" name="val" ng-model="value">
                                             <!--<select ng-if="checkType(val)==='str'" ng-model="selected" ng-change="collectElems(selected)">
