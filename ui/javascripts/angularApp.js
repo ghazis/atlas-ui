@@ -375,13 +375,17 @@ function($scope, assets, $http, $window, $location) {
 		}
 		$scope.master_index = $scope.list_index.sort().indexOf($scope.key);
 		//disables add/remove button depending on if clicked value is in acc_lists/existing_lists
-		if(removeFlag===true){
-		    document.getElementById("addBut"+$scope.master_index).disabled = true;
-		    document.getElementById("remBut"+$scope.master_index).disabled = false;
-		}
-		if(removeFlag===false){
-			document.getElementById("remBut"+$scope.master_index).disabled = true;
-			document.getElementById("addBut"+$scope.master_index).disabled = false;
+		try {
+			if(removeFlag===true){
+			    document.getElementById("addBut"+$scope.master_index).disabled = true;
+			    document.getElementById("remBut"+$scope.master_index).disabled = false;
+			}
+			if(removeFlag===false){
+				document.getElementById("remBut"+$scope.master_index).disabled = true;
+				document.getElementById("addBut"+$scope.master_index).disabled = false;
+			}
+		} catch (e) {
+
 		}
 	}
 
@@ -433,8 +437,6 @@ function($scope, assets, $http, $window, $location) {
 	}
 
 	$scope.saveChanges = function() {
-		$scope.time = Date.now(); //needs to be added to db for persistence
-		$scope.update_string = "Last Updated ";
 		$scope.save_status = true;
 		$scope.initial_vals = JSON.stringify($scope.existing_lists);
 		//sends a post http call to update all values that were modified
