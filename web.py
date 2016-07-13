@@ -186,7 +186,6 @@ def set_pillars():
     params = request.form
     host = params.get('host', None)
     pillar = params.get('val', None)
-    new_pillar = {}
     try:
         pillar_data = json.loads(pillar)
     except ValueError:
@@ -199,15 +198,18 @@ def set_pillars():
         new_pillar.update(pillar_data)
         logger.info('action="update_pillar" request_id="{}" host="{}" old_pillar="{}", new_pillar="{}" diff="{}"'
                     .format(g.request_id, host, old_pillar, new_pillar, diff(old_pillar, new_pillar)))
-        break
+        pillar_db.pillar.update({'_id': host}, new_pillar, upsert=True)
+
+        return "OK", 200
     else:
-        new_pillar.update(pillar_data)
+        pillar_data['_id'] = host
         logger.info('action="create_pillar" request_id="{}" host="{}" new_pillar="{}"'
-                    .format(g.request_id, host, new_pillar))
+                    .format(g.request_id, host, pillar_data))
+        pillar_db.pillar.insert(pillar_data)
 
-    pillar_db.pillar.update({'_id': host}, new_pillar, upsert=True)
-    return "OK"
+        return "OK", 200
 
+    return "Oh oh", 500
 
 @app.route("/jobs/", methods=['GET'])
 def get_jobs():
@@ -266,8 +268,9 @@ def set_profiles():
     logger.info('action=update_user_profile user={} fields="{}" layout="{}"'.format(g.user, fields, layout))
     db.profiles.update(
         {'_id': g.user}, {'$set': {"custom_fields": fields, "checkbox_list": layout}},
-        upsert=False)
-    return layout
+        upsert=True)
+
+    return "OK", 200
 
 
 @app.route("/views/", methods=['GET'])
