@@ -5,17 +5,14 @@ from gtCommon import gtLogger
 from bson import json_util
 
 import gtldap
-import ldap
+from datadiff import diff
 import yaml
-import StringIO
 import re
 import json
 import pymongo
 import types
 import sys
-import logging
 import datetime
-import itertools
 import traceback
 app = Flask(__name__)
 CORS(app)
@@ -24,7 +21,7 @@ config = yaml.load(open('config.yaml', 'r'))
 
 lc = gtldap.ldap_client(config['user_dn'], config['user_pw'], server=config['ldap_server'])
 
-client = pymongo.MongoClient(config['mongo_server'],int(config['mongo_port']))
+client = pymongo.MongoClient(config['mongo_server'], int(config['mongo_port']))
 client[config['mongo_atlas_db']].authenticate(config['mongo_user'], config['mongo_pw'])
 client[config['mongo_salt_db']].authenticate(config['mongo_user'], config['mongo_pw'])
 db = client[config['mongo_atlas_db']]
@@ -38,14 +35,16 @@ logger = gtLogger(config['log_file'], debug=enable_debug_logging).getLogger()
 def _log_request():
     g.user = request.headers.get('gtuser', 'anonymous_user')
     g.request_id = "{}_{}".format(g.user, datetime.datetime.now().strftime('%Y%m%dD%H%M%S'))
-    logger.info('request_id="{}" user="{}" headers="{}" method="{}" request_url="{}"'.format(g.request_id, g.user, dict(request.headers), request.method, request.full_path))
+    logger.info('request_id="{}" user="{}" headers="{}" method="{}" request_url="{}"'
+                .format(g.request_id, g.user, dict(request.headers), request.method, request.full_path))
 
 
 @app.errorhandler(Exception)
 def _handle_exception(e):
     exc_type, exc_value, exc_traceback = sys.exc_info()
-    logger.error("exception='{}' stack_trace='{}'".format(e,
-        ''.join([ x.replace('\\n', '\n') for x in traceback.format_list(traceback.extract_tb(exc_traceback, limit=10))]).strip()))
+    logger.error("exception='{}' stack_trace='{}'"
+                 .format(e, ''.join([x.replace('\\n', '\n') for x in traceback.format_list(traceback.extract_tb(
+                        exc_traceback, limit=10))]).strip()))
     return 'Error : {}'.format(e), 500
 
 
@@ -61,22 +60,20 @@ def get_user(username):
     return json.dumps(users, indent=1), 200, {'Content-Type': 'application/json; charset=utf-8'}
 
 
-def serialize_dict(data,key=""):
+def serialize_dict(data, key=""):
     key = (key+":").lstrip(':')
-
-    if type(data) is types.DictType:
-        new_data = {}
+    new_data = {}
+    if isinstance(data, types.DictType):
         for x in data:
-            if type(data[x]) is types.DictType or type(data[x]) is types.ListType:
-                new_data.update(serialize_dict(data[x],key=key+x))
+            if isinstance(data[x], types.DictType) or isinstance(data[x], types.ListType):
+                new_data.update(serialize_dict(data[x], key=key+x))
             else:
                 new_data[key+x] = data[x]
 
-    elif type(data) is types.ListType:
-        new_data = {}
-        for x,e in enumerate(data):
-            if type(e) is types.DictType or type(e) is types.ListType:
-                new_data.update(serialize_dict(e,key=key+str(x)))
+    elif isinstance(data, types.ListType):
+        for x, e in enumerate(data):
+            if isinstance(e, types.DictType) or isinstance(e, types.ListType):
+                new_data.update(serialize_dict(e, key=key+str(x)))
             else:
                 new_data[key+str(x)] = e
 
@@ -88,7 +85,7 @@ def get_asset(asset):
     serialize = request.args.get('serialize', False)
     output = request.args.get('output', 'json')
     if 'csv' in output:
-        serialize=True
+        serialize = True
     rex = re.compile("^{}(\.geneva-*trading.com)?".format(asset))
     asset = db.hosts.find_one({'minion': rex})
     pillar = pillar_db.pillar.find_one({'minion': rex})
@@ -98,7 +95,7 @@ def get_asset(asset):
         if pillar:
             asset.update(pillar)
         if serialize:
-            asset=serialize_dict(asset)
+            asset = serialize_dict(asset)
     else:
         asset = {}
 
@@ -108,13 +105,14 @@ def get_asset(asset):
         
         elif isinstance(asset[field], datetime.date):
             asset[field] = asset[field].strftime('%Y%m%d')
-
+    # TODO: What is consuming these different media types?
     if 'yaml' in output:
-        return yaml.safe_dump(asset, default_flow_style=False), 200, {'Content-Type': 'application/x-yaml; charset=utf-8'}
+        return yaml.safe_dump(asset, default_flow_style=False), 200, \
+               {'Content-Type': 'application/x-yaml; charset=utf-8'}
     elif 'csv' in output:
         csv_asset = ""
         header = ""
-        for k,v in asset.items():
+        for k, v in asset.items():
             header += "{},".format(k)
             csv_asset += '{},'.format(v)
         csv_asset = header.rstrip(',')+"\n"+csv_asset.rstrip(',')
@@ -125,6 +123,7 @@ def get_asset(asset):
 
 @app.route("/networks/")
 def get_networks():
+    # TODO: Add network id to fetch specific network
     net_config = []
     for network in db.networks.find({}):
         del network['_id']
@@ -134,13 +133,12 @@ def get_networks():
 
 @app.route("/assets/")
 def get_assets():
-    test = db.profiles.find()
     assets = []
     pillars = {}
     serialize = request.args.get('serialize', False)
     output = request.args.get('output', 'json')
     if 'kv' in output:
-        serialize=True
+        serialize = True
     results = db.hosts.find({})
     for host in pillar_db.pillar.find({}):
         pillars[host['_id']] = host
@@ -160,16 +158,17 @@ def get_assets():
         if serialize:
             asset = serialize_dict(asset)
         assets.append(asset)
-
+    # TODO: Are these necessary? What is using these different data formats?
     if 'yaml' in output:
-        return yaml.safe_dump(assets, default_flow_style=False), 200, {'Content-Type': 'application/x-yaml; charset=utf-8'}
+        return yaml.safe_dump(assets, default_flow_style=False), 200,\
+               {'Content-Type': 'application/x-yaml; charset=utf-8'}
     elif 'kv' in output:
         ts = datetime.datetime.now().strftime('%Y%m%dT%H:%M:%S')
         kv_assets = ""
         for x in assets:
-            for k,v in x.items():
-                kv_assets+='{}="{}" '.format(k,v,)
-            kv_assets+='timestamp="{}"\n'.format(ts)
+            for k, v in x.items():
+                kv_assets += '{}="{}" '.format(k, v)
+            kv_assets += 'timestamp="{}"\n'.format(ts)
         return kv_assets
     return json.dumps(assets, indent=1), 200, {'Content-Type': 'application/json; charset=utf-8'}
 
@@ -181,68 +180,102 @@ def get_pillars():
         pillars[host['_id']] = host
     return json.dumps(pillars, indent=1), 200, {'Content-Type': 'application/json; charset=utf-8'}
 
+
 @app.route("/pillars/", methods=['POST'])
 def set_pillars():
     params = request.form
-    host = params['host']
-    val = json.loads(params['val'])
-    for k,v in val.iteritems():
-        pillar_db.pillar.update(
-            {'_id': host},
-            {'$set': {k: v}},
-            upsert=False)
-    return str(params)
+    host = params.get('host', None)
+    pillar = params.get('val', None)
+    try:
+        pillar_data = json.loads(pillar)
+    except ValueError:
+        logger.error('error="failed to parse JSON" request request_id="{}" pillar_data="{}"'
+                     .format(g.request_id, pillar))
+        return "failed to prase JSON paylod", 500
+    for old_pillar in pillar_db.pillar.find({'_id': host}):
+        del old_pillar['_id']
+        new_pillar = old_pillar.copy()
+        new_pillar.update(pillar_data)
+        logger.info('action="update_pillar" request_id="{}" host="{}" old_pillar="{}", new_pillar="{}" diff="{}"'
+                    .format(g.request_id, host, old_pillar, new_pillar, diff(old_pillar, new_pillar)))
+        pillar_db.pillar.update({'_id': host}, new_pillar, upsert=True)
 
+        return "OK", 200
+    else:
+        pillar_data['_id'] = host
+        logger.info('action="create_pillar" request_id="{}" host="{}" new_pillar="{}"'
+                    .format(g.request_id, host, pillar_data))
+        pillar_db.pillar.insert(pillar_data)
+
+        return "OK", 200
+
+    return "Oh oh", 500
 
 @app.route("/jobs/", methods=['GET'])
 def get_jobs():
-    if not request.args.get('id'):
-        return "No minion ID specified"
-    minion = request.args['id']
+    minion = request.args.get('id', None)
+    if not minion:
+        return "No minion ID specified", 500
+
     jobs = []
-    fun_filter = ['mine.update', 'saltutil.find_job', 'runner.jobs.lookup_jid', 'runner.jobs.list_job', 'grains.items', 'pillar.items', 'sys.list_functions']
-    for jobresult in pillar_db.saltReturns.find({'minion': minion, "$and": [{"fun": {"$nin": fun_filter}}]}).sort("jid", direction=pymongo.DESCENDING).limit(20):
+    fun_filter = ['mine.update', 'saltutil.find_job', 'runner.jobs.lookup_jid',
+                  'runner.jobs.list_job', 'grains.items', 'pillar.items', 'sys.list_functions']
+    for jobresult in pillar_db.saltReturns.find(
+            {'minion': minion, "$and": [{"fun": {"$nin": fun_filter}}]})\
+            .sort("jid", direction=pymongo.DESCENDING).limit(20):
         jobs.append(jobresult)
-    return json.dumps(jobs, indent=1, default=json_util.default), 200, {'Content-Type': 'application/json; charset=utf-8'}
+    return json.dumps(jobs, indent=1,
+                      default=json_util.default), 200, {'Content-Type': 'application/json; charset=utf-8'}
 
 
 @app.route("/runs/", methods=['GET'])
 def get_runs():
-    try:
-        jid = request.args['id']
-    except:
-        return "ID must be specified and be an integer"
+    jid = request.args.get('id', None)
+    if not jid:
+        return "ID must be specified and be an integer", 500
     jobs = []
     for jobresult in pillar_db.saltReturns.find({'jid': jid}):
         jobs.append(jobresult)
-    return json.dumps(jobs, indent=1, default=json_util.default), 200, {'Content-Type': 'application/json; charset=utf-8'}
+    return json.dumps(jobs, indent=1,
+                      default=json_util.default), 200, {'Content-Type': 'application/json; charset=utf-8'}
+
 
 @app.route("/profiles/", methods=['GET'])
 def get_profiles():
-    db.profiles.update(
-        {'_id': g.user},
-        {'$set': {
-            'default_fields' : ["host", "allowed_groups", "env_tag", "ilo_ip", "ipv4", "osrelease", "productname", "roles", "serialnumber", "tags"]
-            }
-         },
-        upsert=True)
+    user_profile = {'_id': g.user, 'default_fields': ["host", "allowed_groups", "env_tag", "ilo_ip", "ipv4",
+                                                      "osrelease", "productname", "roles", "serialnumber", "tags"]}
     for i in db.profiles.find({'_id': g.user}):
-        res = i
-    return json.dumps(res)
+        user_profile = i
+        break
+
+    return json.dumps(user_profile)
+
 
 @app.route("/profiles/", methods=['POST'])
 def set_profiles():
+    # TODO: Pass view name to support multiple views. Profile should be a one to many relationship with views
     params = request.form
-    fields = params['fields']
-    layout = params['layout']
+    fields = params.get('fields', None)
+    layout = params.get('layout', None)
+    try:
+        fields = json.loads(fields)
+        layout = json.loads(layout)
+    except ValueError:
+        logger.error('error="failed to parse JSON" request request_id="{}" fields="{}" layout="{}"'
+                     .format(g.request_id, fields, layout))
+        return "failed to prase JSON paylod", 500
+
+    logger.info('action=update_user_profile user={} fields="{}" layout="{}"'.format(g.user, fields, layout))
     db.profiles.update(
-        {'_id': g.user},
-            {'$set': {"custom_fields": json.loads(fields), "checkbox_list": json.loads(layout)}},
-        upsert=False)
-    return layout
+        {'_id': g.user}, {'$set': {"custom_fields": fields, "checkbox_list": layout}},
+        upsert=True)
+
+    return "OK", 200
+
 
 @app.route("/views/", methods=['GET'])
 def get_view():
+    # TODO: Pass view name/id to fetch
     fields = {}
     for i in db.config.find({'_type': 'field'}):
         fields[i['name']] = i
@@ -251,5 +284,4 @@ def get_view():
 
 if __name__ == '__main__':
     app.before_request(_log_request)
-    app.run(debug=True,port=int(config['port']),host="0.0.0.0")
-
+    app.run(debug=True, port=int(config['port']), host="0.0.0.0")
