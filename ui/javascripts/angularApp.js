@@ -139,10 +139,16 @@ function($scope, assets, $http, $window, $location) {
 			assets.getAsset(asset_container);
 		});
 
+    	//accessing pillar data here
 		$http.get('/api/pillars/' + id).success(function(data) {
 			pillar_container = {};
 			if (data == null){
-				pillar_container = $scope.default_pillar;
+				for(var item in $scope.default_pillar) {
+					if($scope.pillar_attrs[item]['visible']===false){
+						continue;
+					}
+					pillar_container[item] = $scope.default_pillar[item];
+				}
 			}
 			for(var item in data) {
 				if($scope.pillar_attrs[item]['visible']===false){

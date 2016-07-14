@@ -201,6 +201,7 @@ def set_pillars():
         return "OK", 200
     else:
         pillar_data['_id'] = host
+        pillar_data['minion'] = host
         logger.info('action="create_pillar" request_id="{}" host="{}" new_pillar="{}"'
                     .format(g.request_id, host, pillar_data))
         pillar_db.pillar.insert(pillar_data)
