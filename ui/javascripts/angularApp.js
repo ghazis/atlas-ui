@@ -407,7 +407,7 @@ function($scope, assets, $http, $window, $location) {
 				$value = undefined;
 			}
 		}
-		$scope.updated_host = $scope.id;
+		$scope.updated_host = $scope.this_id;
 		$scope.updated_val = angular.toJson($scope.existing_lists);
 	}
 
