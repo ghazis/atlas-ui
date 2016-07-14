@@ -1,5 +1,3 @@
-//todo: create local scopes so don't need to use val anymore
-
 var get_counter = 0;
 var assetsApp = angular.module('assetsApp', ['ui.router']);
 assetsApp.config([
@@ -139,42 +137,32 @@ function($scope, assets, $http, $window, $location) {
 				}
 			}
 			assets.getAsset(asset_container);
+		});
 
-
-			asset = asset_container;
-			var pillar_container = {};
-			for (var i=0;i<assets.pillars.length;i++){
-				var id = assets.pillars[i]['_id'];
-				//making sure that pillar exists within assets
-				if (id === asset['host']){
-					$scope.id = id;
-					for(var item in assets.pillars[i]){
-						if (item === "minion" || item === "_id" || item === "role"){
-							continue;
-						}
-						//checks visible attr so pillar is not shown on page if set to false
-						if($scope.pillar_attrs[item]['visible']==false){
-							continue;
-						}
-						pillar_container[item] = assets.pillars[i][item] || "N/A";
-					}
-					assets.getPillar(pillar_container);
-				    for (var k in pillar_container) {
-    					if (pillar_container.hasOwnProperty(k)) {
-    						//inserting current values into object for comparision purposes
-    						$scope.existing_lists[k] = pillar_container[k];					}
-					}
-					$scope.envCheck(pillar_container);
-				}
+		$http.get('/api/pillars/' + id).success(function(data) {
+			pillar_container = {};
+			if (data == null){
+				pillar_container = $scope.default_pillar;
 			}
-			for (var k in assets.this_pillar[0]){
-				$scope.list_index.push(k);
-				if (assets.this_pillar[0][k].constructor === Array){
-					for(var nested in assets.this_pillar[0][k]){
+			for(var item in data) {
+				if($scope.pillar_attrs[item]['visible']===false){
+					continue;
+				}
+				pillar_container[item] = data[item];
+			}
+			assets.getPillar(pillar_container);
+		    for (var item in pillar_container) {
+				$scope.existing_lists[item] = pillar_container[item];					
+			}
+			$scope.envCheck(pillar_container);
+			for (var item in assets.this_pillar[0]){
+				$scope.list_index.push(item);
+				if (assets.this_pillar[0][item].constructor === Array){
+					for(var nested in assets.this_pillar[0][item]){
 						//removes any values from acc_lists if they exist in existing_lists
 						try{
-							if ($scope.acc_lists[k].indexOf(assets.this_pillar[0][k][nested])>=0){
-								$scope.acc_lists[k].splice($scope.acc_lists[k].indexOf(assets.this_pillar[0][k][nested]), 1);
+							if ($scope.acc_lists[item].indexOf(assets.this_pillar[0][item][nested])>=0){
+								$scope.acc_lists[item].splice($scope.acc_lists[item].indexOf(assets.this_pillar[0][item][nested]), 1);
 							}
 						} catch(err) {
 							continue;
@@ -256,22 +244,6 @@ function($scope, assets, $http, $window, $location) {
 	    });
 	};
 
-	$scope.addEditableAssets = function(){
-	    $http.get('/api/pillars/').success(function(data) {
-	    	var count = 0;
-			for(var item in data){
-				var pillar_container = {};
-				count+=1;
-				for (var nested in data[item]){
-					pillar_container[nested] = data[item][nested] || "N/A";
-				}
-				assets.getPillars(
-					pillar_container
-				)
-			}
-	    });
-	};
-
 	$scope.getProfileAndView = function() {
 		$http.get('/api/profiles/').success(function(data) {
 			if (data['_id'] == 'anonymous_user'){
@@ -288,16 +260,19 @@ function($scope, assets, $http, $window, $location) {
 			}
 			//$scope.authorizedUser = true;
 		});
-		$http.get('/api/views/').success(function(data) {
+		$http.get('/api/config/').success(function(data) {
 			//possible values lists
 			$scope.acc_lists = {};
 			$scope.pillar_attrs = {};
+			$scope.default_pillar = data['default_pillar']['template'];
 			for(var k in data){
-				$scope.acc_lists[data[k]['name']] = data[k]['values'];
-				var pillar_attrs = {};
-				pillar_attrs['visible'] = data[k]['visible'];
-				pillar_attrs['editable'] = data[k]['editable'];
-				$scope.pillar_attrs[data[k]['name']] = pillar_attrs;
+				if(data[k]['_type']=='field'){
+					$scope.acc_lists[data[k]['name']] = data[k]['values'];
+					var pillar_attrs = {};
+					pillar_attrs['visible'] = data[k]['visible'];
+					pillar_attrs['editable'] = data[k]['editable'];
+					$scope.pillar_attrs[data[k]['name']] = pillar_attrs;
+				}
 			}
 			$scope.reset_acc_lists = JSON.stringify($scope.acc_lists);
 		});
@@ -570,7 +545,6 @@ function($scope, assets, $http, $window, $location) {
 	$scope.createPossibleFieldsArray(assets.assets);
 	if(get_counter === 0){
 		$window.onload = $scope.addAssets();
-		$window.onload = $scope.addEditableAssets();
 		get_counter += 1;
 		}
 
