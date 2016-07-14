@@ -1,3 +1,4 @@
+//todo: Use $scope.filtered_data in backend to create sorted table with data and export as csv.
 var get_counter = 0;
 var assetsApp = angular.module('assetsApp', ['ui.router']);
 assetsApp.config([
@@ -415,6 +416,19 @@ function($scope, assets, $http, $window, $location) {
 		}
 		$scope.updated_host = $scope.this_id;
 		$scope.updated_val = angular.toJson($scope.existing_lists);
+	}
+
+	$scope.exportData = function (){
+		if($scope.filtered_data == undefined){
+			$scope.filtered_data = assets.assets;
+		}
+		var export_data = {
+			'search_val': $scope.search,
+			'sort_by': $scope.sortType,
+			'sort_descending': $scope.sortReverse,
+			'filtered_data': $scope.filtered_data
+		}
+		console.log(export_data);
 	}
 
 	$scope.saveChanges = function() {

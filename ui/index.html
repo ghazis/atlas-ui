@@ -56,6 +56,7 @@
                     </div>
                     <br></br>
                     <button class="btn btn-primary btn-sm" ng-if="authorizedUser" data-toggle="modal" data-target="#myModal">Add/Remove Fields</button>
+                    <button class="btn btn-primary btn-sm" ng-click="exportData()">Export</button>
                     <br></br>
                     <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
                         <div class="modal-dialog">
@@ -97,7 +98,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr ng-repeat="asset in assets | orderBy:sortType:sortReverse | filter:search track by $index">
+                                <tr ng-repeat="asset in ($parent.filtered_data = (assets | orderBy:sortType:sortReverse | filter:search))">
                                     <td class="text-center col-md-1">{{   }}<a href='#/asset?id={{asset.minion}}'><button type="button" class="btn btn-primary btn-circle"><i class="fa fa-list"></i>
                                     </button></a>
                                     <td ng-repeat='field in homepage_fields'>
@@ -110,14 +111,6 @@
                                             </table>
                                         </div>
                                     </td>
-                                    <!--<td ng-repeat='field in homepage_fields'>{{asset[field]}}</td>
-                                    <td ng-if="checkType(asset[field])=='arr'" ng-repeat='field in homepage_fields'>
-                                        <table>
-                                            <tr ng-repeat="item in asset[field]">
-                                                <td>{{ item }}</td>
-                                            </tr>
-                                        </table>
-                                    </td>-->
                                 </tr>
                             </tbody>
                         </table>
