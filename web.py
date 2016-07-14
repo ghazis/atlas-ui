@@ -173,11 +173,9 @@ def get_assets():
     return json.dumps(assets, indent=1), 200, {'Content-Type': 'application/json; charset=utf-8'}
 
 
-@app.route("/pillars/", methods=['GET'])
-def get_pillars():
-    pillars = {}
-    for host in pillar_db.pillar.find({}):
-        pillars[host['_id']] = host
+@app.route("/pillars/<pillar>", methods=['GET'])
+def get_pillars(pillar):
+    pillars = pillar_db.pillar.find_one({'minion' : pillar})
     return json.dumps(pillars, indent=1), 200, {'Content-Type': 'application/json; charset=utf-8'}
 
 
@@ -203,6 +201,7 @@ def set_pillars():
         return "OK", 200
     else:
         pillar_data['_id'] = host
+        pillar_data['minion'] = host
         logger.info('action="create_pillar" request_id="{}" host="{}" new_pillar="{}"'
                     .format(g.request_id, host, pillar_data))
         pillar_db.pillar.insert(pillar_data)
@@ -273,13 +272,13 @@ def set_profiles():
     return "OK", 200
 
 
-@app.route("/views/", methods=['GET'])
-def get_view():
-    # TODO: Pass view name/id to fetch
-    fields = {}
-    for i in db.config.find({'_type': 'field'}):
-        fields[i['name']] = i
-    return json.dumps(fields, indent=1, default=json_util.default)
+@app.route("/config/", methods=['GET'])
+def get_config():
+    config = {}
+    for i in db.config.find({}):
+        config[i['name']] = i
+    return json.dumps(config, indent=1, default=json_util.default)
+
 
 
 if __name__ == '__main__':
