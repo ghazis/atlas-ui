@@ -59,9 +59,8 @@
                         <input type="text" class="form-control" placeholder="Filter Table" ng-model="search">
                     </div>
                     <br></br>
-                    <button class="btn btn-primary btn-sm" ng-if="authorizedUser" data-toggle="modal" data-target="#myModal">Add/Remove Fields</button>
-                    <button class="btn btn-primary btn-sm" filename="test.csv" ng-csv="createExportData()" csv-header="homepage_fields.sort()">Export</button>
-                    <button class="btn btn-primary btn-sm" ng-click="createExportData()">Test</button>
+                    <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#myModal">Add/Remove Fields</button>
+                    <button class="btn btn-primary btn-sm" filename="atlas_data.csv" ng-csv="createExportData()" csv-label="true">Export CSV</button>
                     <br></br>
                     <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
                         <div class="modal-dialog">

@@ -1,4 +1,3 @@
-//todo: order $scope.filtered_data properly so that it exports exactly as on homepage
 var get_counter = 0;
 var assetsApp = angular.module('assetsApp', ['ui.router', 'ngSanitize', 'ngCsv']);
 assetsApp.config([
@@ -428,30 +427,30 @@ function($scope, assets, $http, $window, $location, CSV) {
 	}
 
 	$scope.createExportData = function (){
-		$scope.headers = [];
 		var filtered_data = [];
-		for (var item in $scope.lrgst_asset){
-			$scope.headers.push(item);
-		}
-		var export_data = {
-			'search_val': $scope.search,
-			'sort_by': $scope.sortType,
-			'sort_descending': $scope.sortReverse,
-			'filtered_data': $scope.filtered_data
-		}
 		for (var i=0; i<$scope.filtered_data.length; i++) {
 			var filtered_part = {}
 			for(item in $scope.filtered_data[i]){
 				for (var j=0; j<$scope.homepage_fields.length; j++){
-					if ($scope.homepage_fields[j] == item){
+					if (item == 'host'){
 						filtered_part[item] = $scope.filtered_data[i][item];
+					}
+				}
+			}
+			for (item in $scope.filtered_data[i]){
+				for (var j=0; j<$scope.homepage_fields.length; j++){
+					if ($scope.homepage_fields[j] == item && item != 'host'){
+						if ($scope.filtered_data[i][item].constructor == Array){
+							filtered_part[item] = JSON.stringify($scope.filtered_data[i][item].join(", "));
+						} else {
+							filtered_part[item] = $scope.filtered_data[i][item];
+						}
 					}
 				}
 			}
 			filtered_data.push(filtered_part);
 		}
 		$scope.filtered_data = filtered_data;
-		console.log($scope.filtered_data[0]);
 		return $scope.filtered_data;
 	}
 
