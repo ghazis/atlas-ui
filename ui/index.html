@@ -209,7 +209,7 @@
                                         <td ng-if="checkType(val)==='str'">
                                         <div class="row">
                                             <div class="col-xs-6">
-                                                <form id="strform" ng-submit="updateVal(key, val, index, value, false, false)" method="POST">
+                                                <form id="strform" ng-submit="updateVal(key, val, index, strvalue, false, false)" method="POST">
                                                     <input class="form-control" type="hidden" name="host" value={{pillar._id}}>
                                                     <input class="form-control" type="hidden" name="key" value={{key}}>
                                                     <div class="col-xs-1">
@@ -263,11 +263,7 @@
                                                 <option ng-if="pillar_attrs[key]['editable']===false" disabled ng-repeat="item in acc_lists[key] track by $index" value="{&quot;{{item+','+key}}&quot;: {{$index}}}">{{item}}</option>
                                                 <option ng-if="pillar_attrs[key]['editable']" ng-repeat="item in acc_lists[key] track by $index" value="{&quot;{{item+','+key}}&quot;: {{$index}}}">{{item}}</option>
                                             </select>
-                                                <input ng-show="checkType(val)==='str'" form="strform" size="15" type="text" name="val" ng-model="value">
-                                            <!--<select ng-if="checkType(val)==='str'" ng-model="selected" ng-change="collectElems(selected)">
-                                                <option disabled value="">-- choose one --</option>
-                                                <option ng-repeat="item in acc_lists[key] track by $index" value="{&quot;{{item+','+key}}&quot;: {{$index}}}">{{item}}</option>
-                                            </select>-->
+                                                <input ng-show="checkType(val)==='str'" form="strform" size="15" type="text" name="val" ng-model="strvalue">
                                         </div>
                                         </td>
                                         </div>
@@ -290,7 +286,7 @@
                                     <div class="modal-content">
                                         <div class="modal-header">
                                             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                                            <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+                                            <h4 class="modal-title" id="myModalLabel">Confirm Changes</h4>
                                         </div>
                                         <div class="modal-body">
                                             {{message}}

@@ -120,21 +120,6 @@ function($scope, assets, $http, $window, $location, CSV) {
 	};
 
 	$scope.getProfileAndView = function() {
-		$http.get('/api/profiles/').success(function(data) {
-			if (data['_id'] == 'anonymous_user'){
-				$scope.homepage_fields = data['default_fields'];
-				$scope.authorizedUser = false;
-			} else {
-				if (data['custom_fields'] != undefined){
-					$scope.homepage_fields = data['custom_fields'];
-					$scope.selected_homepage_fields = data['checkbox_list'];
-				} else{
-					$scope.homepage_fields = data['default_fields'];
-				}
-				$scope.authorizedUser = true;
-			}
-			//$scope.authorizedUser = true;
-		});
 		$http.get('/api/config/').success(function(data) {
 			//possible values lists
 			$scope.acc_lists = {};
@@ -150,6 +135,21 @@ function($scope, assets, $http, $window, $location, CSV) {
 				}
 			}
 			$scope.reset_acc_lists = JSON.stringify($scope.acc_lists);
+		});
+		$http.get('/api/profiles/').success(function(data) {
+			if (data['_id'] == 'anonymous_user'){
+				$scope.homepage_fields = data['default_fields'];
+				$scope.authorizedUser = false;
+			} else {
+				if (data['custom_fields'] != undefined){
+					$scope.homepage_fields = data['custom_fields'];
+					$scope.selected_homepage_fields = data['checkbox_list'];
+				} else{
+					$scope.homepage_fields = data['default_fields'];
+				}
+				$scope.authorizedUser = true;
+			}
+			//$scope.authorizedUser = true;
 		});
 	}
 
