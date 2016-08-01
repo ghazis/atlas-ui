@@ -1,5 +1,5 @@
 var get_counter = 0;
-var assetsApp = angular.module('assetsApp', ['ui.router']);
+var assetsApp = angular.module('assetsApp', ['ui.router', 'ngSanitize', 'ngCsv']);
 assetsApp.config([
 '$stateProvider',
 '$urlRouterProvider',
@@ -84,7 +84,8 @@ assetsApp.controller('MainCtrl', [
 '$http',
 '$window',
 '$location',
-function($scope, assets, $http, $window, $location) {
+'CSV',
+function($scope, assets, $http, $window, $location, CSV) {
 	$scope.sortType = 'host';
 	$scope.sortReverse = false;
 	$scope.search = '';
@@ -117,6 +118,91 @@ function($scope, assets, $http, $window, $location) {
 			return "undefined";
 		}
 	};
+
+	$scope.getProfileAndView = function() {
+		$http.get('/api/config/').success(function(data) {
+			//possible values lists
+			$scope.acc_lists = {};
+			$scope.pillar_attrs = {};
+			$scope.default_pillar = data['default_pillar']['template'];
+			for(var k in data){
+				if(data[k]['_type']=='field'){
+					$scope.acc_lists[data[k]['name']] = data[k]['values'];
+					var pillar_attrs = {};
+					pillar_attrs['visible'] = data[k]['visible'];
+					pillar_attrs['editable'] = data[k]['editable'];
+					$scope.pillar_attrs[data[k]['name']] = pillar_attrs;
+				}
+			}
+			$scope.reset_acc_lists = JSON.stringify($scope.acc_lists);
+		});
+		$http.get('/api/profiles/').success(function(data) {
+			if (data['_id'] == 'anonymous_user'){
+				$scope.homepage_fields = data['default_fields'];
+				$scope.authorizedUser = false;
+			} else {
+				if (data['custom_fields'] != undefined){
+					$scope.homepage_fields = data['custom_fields'];
+					$scope.selected_homepage_fields = data['checkbox_list'];
+				} else{
+					$scope.homepage_fields = data['default_fields'];
+				}
+				$scope.authorizedUser = true;
+			}
+			//$scope.authorizedUser = true;
+		});
+	}
+
+	$scope.addAssets = function(id){
+	    $http.get('/api/assets/').success(function(data, headers) {
+	    	var max_length = 0;
+			for (var i=0;i<data.length;i++){
+				var asset_container = {};
+				if(Object.keys(data[i]).length > max_length){
+					max_length = Object.keys(data[i]).length
+					$scope.lrgst_asset = data[i];
+				}
+			}
+			for (var i=0;i<data.length;i++){
+				var asset_container = {};
+				for(var item in $scope.lrgst_asset){
+					asset_container[item] = data[i][item] || "N/A";
+					//checks if array has one element. If it does then converts to string.
+					if ($scope.checkType(asset_container[item]) === 'arr'){
+						if(asset_container[item].length === 1 && $scope.checkType(asset_container[item][0]) !== 'dict' && $scope.checkType(asset_container[item][0]) !== 'arr'){
+							asset_container[item] = asset_container[item][0];
+						}
+						//checks if array is empty and applies "N/A" if it is
+						if(asset_container[item].length === 0){
+							asset_container[item] = "N/A";
+						}
+					}
+				}
+				//sends to factory
+				assets.getAssets(
+					asset_container
+				)
+			}
+			$scope.createPossibleFieldsArray(assets.assets);
+	    });
+	};
+
+	//populates possible_fields_array for homepage layout modification
+	$scope.createPossibleFieldsArray = function (arr) {
+		for(var i=0; i<arr.length; i++){
+			for (var elem in arr[i]) {
+				if($.inArray(elem, $scope.possible_homepage_fields)==-1){
+					$scope.possible_homepage_fields.push(elem);
+				}
+				if($.inArray(elem, $scope.homepage_fields)>-1){
+					$scope.selected_homepage_fields[elem]=true;
+				} else {
+					$scope.selected_homepage_fields[elem]=false;
+				}
+			}
+		}
+		$scope.possible_homepage_fields = $scope.possible_homepage_fields.sort();
+	}
 
 	$scope.accessAsset = function(id){
 		assets.this_asset = [];
@@ -180,28 +266,6 @@ function($scope, assets, $http, $window, $location) {
 		});
 	}
 
-	$scope.accessRuns = function(){
-		assets.runs = [];
-		id = $location.search()['id']
-    	$http.get('/api/runs/?id=' + id).then(function(data) {
-    		var data = data.data;
-			for (var i=0;i<data.length;i++){
-				var runs_container = {};
-				for(var item in data[i]){
-					runs_container[item] = data[i][item] || "N/A";
-				}
-				for(var elem in runs_container['full_ret']){
-					if($scope.checkType(runs_container['full_ret'][elem])==='dict'){
-						var to_be_pretty = runs_container['full_ret'][elem];
-						pretty = JSON.stringify(to_be_pretty, null, 2);
-						runs_container['full_ret'][elem] = pretty;
-					}
-				}
-				assets.getRuns(runs_container['full_ret']);
-			}
-		});
-	}
-
 	$scope.accessJobs = function(){
 		assets.this_job = [];
 		id = $location.search()['id']
@@ -224,81 +288,26 @@ function($scope, assets, $http, $window, $location) {
 		});
 	}
 
-	$scope.addAssets = function(id){
-	    $http.get('/api/assets/').success(function(data, headers) {
+	$scope.accessRuns = function(){
+		assets.runs = [];
+		id = $location.search()['id']
+    	$http.get('/api/runs/?id=' + id).then(function(data) {
+    		var data = data.data;
 			for (var i=0;i<data.length;i++){
-				var asset_container = {};
+				var runs_container = {};
 				for(var item in data[i]){
-					asset_container[item] = data[i][item] || "N/A";
-					//checks if array has one element. If it does then converts to string.
-					if ($scope.checkType(asset_container[item]) === 'arr'){
-						if(asset_container[item].length === 1 && $scope.checkType(asset_container[item][0]) !== 'dict' && $scope.checkType(asset_container[item][0]) !== 'arr'){
-							asset_container[item] = asset_container[item][0];
-						}
-						//checks if array is empty and applies "N/A" if it is
-						if(asset_container[item].length === 0){
-							asset_container[item] = "N/A";
-						}
+					runs_container[item] = data[i][item] || "N/A";
+				}
+				for(var elem in runs_container['full_ret']){
+					if($scope.checkType(runs_container['full_ret'][elem])==='dict'){
+						var to_be_pretty = runs_container['full_ret'][elem];
+						pretty = JSON.stringify(to_be_pretty, null, 2);
+						runs_container['full_ret'][elem] = pretty;
 					}
 				}
-				//sends to factory
-				assets.getAssets(
-					asset_container
-				)
+				assets.getRuns(runs_container['full_ret']);
 			}
-			$scope.createPossibleFieldsArray(assets.assets);
-	    });
-	};
-
-	$scope.getProfileAndView = function() {
-		$http.get('/api/profiles/').success(function(data) {
-			if (data['_id'] == 'anonymous_user'){
-				$scope.homepage_fields = data['default_fields'];
-				$scope.authorizedUser = false;
-			} else {
-				if (data['custom_fields'] != undefined){
-					$scope.homepage_fields = data['custom_fields'];
-					$scope.selected_homepage_fields = data['checkbox_list'];
-				} else{
-					$scope.homepage_fields = data['default_fields'];
-				}
-				$scope.authorizedUser = true;
-			}
-			//$scope.authorizedUser = true;
 		});
-		$http.get('/api/config/').success(function(data) {
-			//possible values lists
-			$scope.acc_lists = {};
-			$scope.pillar_attrs = {};
-			$scope.default_pillar = data['default_pillar']['template'];
-			for(var k in data){
-				if(data[k]['_type']=='field'){
-					$scope.acc_lists[data[k]['name']] = data[k]['values'];
-					var pillar_attrs = {};
-					pillar_attrs['visible'] = data[k]['visible'];
-					pillar_attrs['editable'] = data[k]['editable'];
-					$scope.pillar_attrs[data[k]['name']] = pillar_attrs;
-				}
-			}
-			$scope.reset_acc_lists = JSON.stringify($scope.acc_lists);
-		});
-	}
-
-	//populates possible_fields_array for homepage layout modification
-	$scope.createPossibleFieldsArray = function (arr) {
-		for(var i=0; i<arr.length; i++){
-			for (var elem in arr[i]) {
-				if($.inArray(elem, $scope.possible_homepage_fields)==-1){
-					$scope.possible_homepage_fields.push(elem);
-				}
-				if($.inArray(elem, $scope.homepage_fields)>-1){
-					$scope.selected_homepage_fields[elem]=true;
-				} else {
-					$scope.selected_homepage_fields[elem]=false;
-				}
-			}
-		}
-		$scope.possible_homepage_fields = $scope.possible_homepage_fields.sort();
 	}
 
 	$scope.saveHomepageLayout = function () {
@@ -415,6 +424,34 @@ function($scope, assets, $http, $window, $location) {
 		}
 		$scope.updated_host = $scope.this_id;
 		$scope.updated_val = angular.toJson($scope.existing_lists);
+	}
+
+	$scope.createExportData = function (){
+		var filtered_data = [];
+		for (var i=0; i<$scope.filtered_data.length; i++) {
+			var filtered_part = {}
+			for(item in $scope.filtered_data[i]){
+				for (var j=0; j<$scope.homepage_fields.length; j++){
+					if (item == 'host'){
+						filtered_part[item] = $scope.filtered_data[i][item];
+					}
+				}
+			}
+			for (item in $scope.filtered_data[i]){
+				for (var j=0; j<$scope.homepage_fields.length; j++){
+					if ($scope.homepage_fields[j] == item && item != 'host'){
+						if ($scope.filtered_data[i][item].constructor == Array){
+							filtered_part[item] = JSON.stringify($scope.filtered_data[i][item].join(", "));
+						} else {
+							filtered_part[item] = $scope.filtered_data[i][item];
+						}
+					}
+				}
+			}
+			filtered_data.push(filtered_part);
+		}
+		$scope.filtered_data = filtered_data;
+		return $scope.filtered_data;
 	}
 
 	$scope.saveChanges = function() {
@@ -546,9 +583,9 @@ function($scope, assets, $http, $window, $location) {
 		}
 	}
 
-	//ensures assets are not added to table multiple times by pressing back button
 	$window.onload = $scope.getProfileAndView();
-	$scope.createPossibleFieldsArray(assets.assets);
+
+	//ensures assets are not added to table multiple times by pressing back button
 	if(get_counter === 0){
 		$window.onload = $scope.addAssets();
 		get_counter += 1;

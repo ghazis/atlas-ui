@@ -13,14 +13,12 @@ class ldap_client:
     group_cache = {}
     cache_ts = None
 
-
     def __init__(self, dn, pw, server='genevatrading.com'):
         self.ldap_bind_dn = dn
         self.ldap_bind_pw = pw
         self.ldap_bind_server = server
         self.do_bind()
         self.cache_results()
-        
 
     def do_bind(self):
         self.ldap_conn = self.ldap.initialize('ldap://{}'.format(self.ldap_bind_server))
@@ -28,14 +26,13 @@ class ldap_client:
         self.ldap.set_option(self.ldap.OPT_REFERRALS, 0)
         self.ldap.set_option(self.ldap.OPT_SIZELIMIT, 4000)
         self.ldap.set_option(self.ldap.OPT_X_TLS_REQUIRE_CERT, self.ldap.OPT_X_TLS_NEVER)
-#        self.ldap_conn.start_tls_s()
+        #        self.ldap_conn.start_tls_s()
         # grrr, bind doesn't seem to last. can fix?able
         r = self.ldap_conn.simple_bind_s(self.ldap_bind_dn, self.ldap_bind_pw)
 
         if r[0] == 97:
             return True
         return None
-
 
     def find_groups(self, sfilter=None):
         result = []
@@ -44,7 +41,6 @@ class ldap_client:
                 result.append({'group': group, 'members': self.group_cache[group]})
         return result
 
-
     def find_users(self, sfilter=None):
         result = []
         for user in self.user_cache:
@@ -52,26 +48,28 @@ class ldap_client:
                 result.append({'user': user, 'groups': self.user_cache[user]})
         return result
 
-
     def cache_results(self, sfilter=None):
         users = {}
         groups = {}
 
-        for user in self.search('(&(objectclass=person)(sAMAccountName=*))', attrs=['mail', 'sAMAccountName'], base_dn="OU=AllUsers,OU=GENEVATRADING,DC=genevatrading,DC=com"):
+        for user in self.search('(&(objectclass=person)(sAMAccountName=*))', attrs=['mail', 'sAMAccountName'],
+                                base_dn="DC=genevatrading,DC=com"):
             attrs = user.get_attributes()
             if 'sAMAccountName' in attrs:
                 users[attrs['sAMAccountName'][0].lower()] = user.get_dn()
 
-        for group in self.search('(&(objectclass=group)(name=*))', attrs=['member', 'displayname', 'name']):
+        for group in self.search('(&(objectclass=group)(name=*))', attrs=['member', 'displayname', 'name'],
+                                 base_dn="DC=genevatrading,DC=com"):
             attrs = group.get_attributes()
             if 'member' in attrs and 'name' in attrs:
                 if 'displayname' in attrs:
                     displayname = attrs['displayname'][0]
                 else:
                     displayname = ''
-                groups[attrs['name'][0].lower()] = {'members': attrs['member'], 'dn': group.get_dn(), 'displayname': displayname}
-        
-        self.user_dn_map = dict([(v,k) for k,v in users.iteritems()])
+                groups[attrs['name'][0].lower()] = {'members': attrs['member'], 'dn': group.get_dn(),
+                                                    'displayname': displayname}
+
+        self.user_dn_map = dict([(v, k) for k, v in users.iteritems()])
         for name, group in groups.items():
             self.group_dn_map[group['dn']] = name
 
@@ -93,7 +91,6 @@ class ldap_client:
                     self.user_cache[member] = []
                 self.user_cache[member].append(group)
 
-
     def resolve_members(self, members, group, ldap_groups):
         """ Resolve all members of group
             recursive method that will resolve all member groups into users
@@ -105,12 +102,11 @@ class ldap_client:
                 resolved_members += [member]
             elif member in ldap_groups:
                 resolved_members += self.resolve_members(ldap_groups[member]['members'], member, ldap_groups)
-            #else do nothing, user must be out of scope
+                # else do nothing, user must be out of scope
         return resolved_members
 
-
     def search(self, ldap_filter, base_dn="OU=GENEVATRADING,DC=genevatrading,DC=com",
-            attrs=None, scope=None):
+               attrs=None, scope=None):
         """Execute a simple LDAP search"""
 
         if not self.do_bind():
@@ -122,14 +118,13 @@ class ldap_client:
         result = self.parse_search_results(raw)
         return result
 
-        
     def parse_search_results(self, results):
         """Given a set of results, return a list of LDAPSearchResult
         objects.
         """
         res = []
 
-        if type(results) == tuple and len(results) == 2 :
+        if type(results) == tuple and len(results) == 2:
             (code, arr) = results
         elif type(results) == list:
             arr = results
@@ -138,7 +133,7 @@ class ldap_client:
             return res
 
         for item in arr:
-            res.append( LDAPSearchResult(item) )
+            res.append(LDAPSearchResult(item))
 
         return res
 
@@ -163,7 +158,7 @@ class LDAPSearchResult:
 
     def get_attributes(self):
         """Get a dictionary of all attributes.
-        get_attributes()->{'name1':['value1','value2',...], 
+        get_attributes()->{'name1':['value1','value2',...],
                                 'name2: [value1...]}
         """
         return self.attrs
@@ -185,7 +180,7 @@ class LDAPSearchResult:
 
         has_attribute(string attr_name)->boolean
         """
-        return self.attrs.has_key( attr_name )
+        return self.attrs.has_key(attr_name)
 
     def get_attr_values(self, key):
         """Get a list of attribute values.
@@ -205,7 +200,6 @@ class LDAPSearchResult:
         """
         return self.dn
 
-                         
     def pretty_print(self):
         """Create a nice string representation of this object.
 
