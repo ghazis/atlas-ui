@@ -1,4 +1,3 @@
-//todo: Fix issue where dicts are not being properly displayed on csv file when exported
 var get_counter = 0;
 var assetsApp = angular.module('assetsApp', ['ui.router', 'ngSanitize', 'ngCsv']);
 assetsApp.config([
@@ -442,8 +441,10 @@ function($scope, assets, $http, $window, $location, CSV) {
 			for (item in $scope.filtered_data[i]){
 				for (var j=0; j<$scope.homepage_fields.length; j++){
 					if ($scope.homepage_fields[j] == item && item != 'host'){
-						if ($scope.filtered_data[i][item].constructor == Array){
+						if ($scope.checkType($scope.filtered_data[i][item]) == 'arr'){
 							filtered_part[item] = JSON.stringify($scope.filtered_data[i][item].join(", "));
+						} else if ($scope.checkType($scope.filtered_data[i][item]) == 'dict') {
+							filtered_part[item] = JSON.stringify($scope.filtered_data[i][item]);
 						} else {
 							filtered_part[item] = $scope.filtered_data[i][item];
 						}
