@@ -1,5 +1,7 @@
+//todo: need to fix the autofill bar to be the appropriate size
 var get_counter = 0;
 var assetsApp = angular.module('assetsApp', ['ui.router', 'ngSanitize', 'ngCsv']);
+
 assetsApp.config([
 '$stateProvider',
 '$urlRouterProvider',
@@ -86,6 +88,8 @@ assetsApp.controller('MainCtrl', [
 '$location',
 'CSV',
 function($scope, assets, $http, $window, $location, CSV) {
+	$scope.opts=["this", "that", "It Worked!!!!"];
+	$scope.inside=[];
 	$scope.sortType = 'host';
 	$scope.sortReverse = false;
 	$scope.search = '';
@@ -97,6 +101,46 @@ function($scope, assets, $http, $window, $location, CSV) {
 	$scope.selected_homepage_fields = {};
 	//empty object which will contain all current values that are pulled from http call
 	$scope.existing_lists ={};
+
+	$scope.accessSearchKey = function(key){
+		$scope.search_key = key;
+	}
+
+	$scope.p = function () {
+		var substringMatcher = function(strs) {
+		  return function findMatches(q, cb) {
+		    var matches, substringRegex;
+
+		    // an array that will be populated with substring matches
+		    matches = [];
+
+		    // regex used to determine if a string contains the substring `q`
+		    substrRegex = new RegExp(q, 'i');
+
+		    // iterate through the pool of strings and for any string that
+		    // contains the substring `q`, add it to the `matches` array
+		    $.each(strs, function(i, str) {
+		      if (substrRegex.test(str)) {
+		        matches.push(str);
+		      }
+		    });
+
+		    cb(matches);
+		  };
+		};
+
+		var options = $scope.acc_lists[$scope.search_key];
+
+		$('#opts .typeahead').typeahead({
+		  hint: true,
+		  highlight: true,
+		  minLength: 0
+		},
+		{
+		  name: 'options',
+		  source: substringMatcher(options)
+		});
+	}
 
 	$scope.setSortType = function(field) {
 		$scope.sortReverse=!$scope.sortReverse;
@@ -132,6 +176,7 @@ function($scope, assets, $http, $window, $location, CSV) {
 					var pillar_attrs = {};
 					pillar_attrs['visible'] = data[k]['visible'];
 					pillar_attrs['editable'] = data[k]['editable'];
+					pillar_attrs['type'] = data[k]['type'];
 					$scope.pillar_attrs[data[k]['name']] = pillar_attrs;
 				}
 			}

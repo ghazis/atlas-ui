@@ -43,7 +43,7 @@
     <!-- Bootstrap Core JavaScript -->
     <script src="/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
 
-    
+    <script src="https://twitter.github.io/typeahead.js/releases/latest/typeahead.bundle.js"></script>
 
 
     <script type="text/ng-template" id="/home.ejs">
@@ -258,13 +258,14 @@
                                         </div>
                                         </td>
                                         <td>
-                                        <div class="col-xs-6">
-                                            <select required id="add" ng-if="checkType(val)==='arr'" ng-model="selected" ng-click="collectElems(selected, false)" ng-attr-size="{{acc_lists[key].length+1}}" multiple>
+                                        <div class="col-xs-6" id="the-basics">
+                                            <select required id="add" ng-if="pillar_attrs[key]['type']=='select'" ng-model="selected" ng-click="collectElems(selected, false)" ng-attr-size="{{acc_lists[key].length+1}}" multiple>
                                                 <option disabled value="">-- choose one --</option>
                                                 <option ng-if="pillar_attrs[key]['editable']===false" disabled ng-repeat="item in acc_lists[key] track by $index" value="{&quot;{{item+','+key}}&quot;: {{$index}}}">{{item}}</option>
                                                 <option ng-if="pillar_attrs[key]['editable']" ng-repeat="item in acc_lists[key] track by $index" value="{&quot;{{item+','+key}}&quot;: {{$index}}}">{{item}}</option>
                                             </select>
-                                                <input ng-show="checkType(val)==='str'" form="strform" size="15" type="text" name="val" ng-model="strvalue">
+                                            <input ng-show="pillar_attrs[key]['type']=='text'" form="strform" size="15" type="text" name="val" ng-model="strvalue">
+                                            <div id="opts" ng-init="accessSearchKey(key)" ng-if="pillar_attrs[key]['type']=='autofill'"><input ng-controller="p" class="typeahead"></div>
                                         </div>
                                         </td>
                                         </div>
