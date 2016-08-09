@@ -1,6 +1,6 @@
-//todo: need to fix the autofill bar to be the appropriate size
+//todo: need to bind autofill bar with add button to properly retrieve value
 var get_counter = 0;
-var assetsApp = angular.module('assetsApp', ['ui.router', 'ngSanitize', 'ngCsv']);
+var assetsApp = angular.module('assetsApp', ['ui.router', 'ngSanitize', 'ngCsv', 'ngMaterial']);
 
 assetsApp.config([
 '$stateProvider',
@@ -87,7 +87,17 @@ assetsApp.controller('MainCtrl', [
 '$window',
 '$location',
 'CSV',
-function($scope, assets, $http, $window, $location, CSV) {
+'$timeout',
+'$q',
+'$log',
+function($scope, assets, $http, $window, $location, CSV, $timeout, $q, $log) {
+	var self = this;
+	self.simulateQuery = false;
+	self.isDisabled    = false;
+	self.querySearch   = querySearch;
+	self.selectedItemChange = selectedItemChange;
+	self.searchTextChange   = searchTextChange;
+	self.newState = newState;
 	$scope.opts=["this", "that", "It Worked!!!!"];
 	$scope.inside=[];
 	$scope.sortType = 'host';
@@ -102,44 +112,62 @@ function($scope, assets, $http, $window, $location, CSV) {
 	//empty object which will contain all current values that are pulled from http call
 	$scope.existing_lists ={};
 
-	$scope.accessSearchKey = function(key){
-		$scope.search_key = key;
+	function newState(state) {
+	  console.log("This functionality is yet to be implemented!");
+	}    
+	function querySearch (query, key) {
+		console.log("in")
+		self.options = loadStates(key);
+	  var results = query ? self.options.filter( createFilterFor(query) ) : self.options, deferred;
+	  if (self.simulateQuery) {
+	     deferred = $q.defer();
+	     $timeout(function () { 
+	           deferred.resolve( results ); 
+	        }, 
+	        Math.random() * 1000, false);
+	     return deferred.promise;
+	  } else {
+	     return results;
+	  }
+	}
+	function searchTextChange(text) {
+	  $log.info('Text changed to ' + text);
+	}
+	function selectedItemChange(item, key, val, removeFlag) {
+	  $scope.key = key;
+	  $scope.value = item['value'];
+	  $scope.index = $scope.acc_lists[key].indexOf($scope.value);
+	  $scope.limit = 0;
+	  $scope.master_index = $scope.list_index.sort().indexOf($scope.key);
+		try {
+			if(removeFlag===true){
+			    document.getElementById("addBut"+$scope.master_index).disabled = true;
+			    document.getElementById("remBut"+$scope.master_index).disabled = false;
+			}
+			if(removeFlag===false){
+				document.getElementById("remBut"+$scope.master_index).disabled = true;
+				document.getElementById("addBut"+$scope.master_index).disabled = false;
+			}
+		} catch (e) {
+
+		}
 	}
 
-	$scope.p = function () {
-		var substringMatcher = function(strs) {
-		  return function findMatches(q, cb) {
-		    var matches, substringRegex;
-
-		    // an array that will be populated with substring matches
-		    matches = [];
-
-		    // regex used to determine if a string contains the substring `q`
-		    substrRegex = new RegExp(q, 'i');
-
-		    // iterate through the pool of strings and for any string that
-		    // contains the substring `q`, add it to the `matches` array
-		    $.each(strs, function(i, str) {
-		      if (substrRegex.test(str)) {
-		        matches.push(str);
-		      }
-		    });
-
-		    cb(matches);
-		  };
-		};
-
-		var options = $scope.acc_lists[$scope.search_key];
-
-		$('#opts .typeahead').typeahead({
-		  hint: true,
-		  highlight: true,
-		  minLength: 0
-		},
-		{
-		  name: 'options',
-		  source: substringMatcher(options)
-		});
+	function loadStates(key) {
+	  var options = $scope.acc_lists[key];
+	  return options.map( function (option) {
+	     return {
+	        value: option.toLowerCase(),
+	        display: option
+	     };
+	  });
+	}
+	//filter function for search query
+	function createFilterFor(query) {
+	  var lowercaseQuery = angular.lowercase(query);
+	  return function filterFn(option) {
+	     return (option.value.indexOf(lowercaseQuery) === 0);
+	  };
 	}
 
 	$scope.setSortType = function(field) {
@@ -402,6 +430,7 @@ function($scope, assets, $http, $window, $location, CSV) {
 
 	$scope.collectElems = function(item, removeFlag){
 		//called whenever a value is clicked to grab information
+		console.log(item);
 		if(item != undefined){
 			obj = JSON.parse(item);
 			$scope.index = obj[Object.keys(obj)[0]];
@@ -441,13 +470,21 @@ function($scope, assets, $http, $window, $location, CSV) {
 	}
 
 	$scope.updateVal = function(key, val, index, value, addFlag, removeFlag){
+		console.log(key);
+		console.log(val);
+		console.log(index);
+		console.log(value);
+		console.log(addFlag);
+		console.log(removeFlag);
 		$scope.save_status = false;
 		$scope.row_index = $scope.list_index.sort().indexOf(key);
 		if (addFlag === true) {
 			$('#add option').attr('selected', null);
 			document.getElementById("rem").disabled = false;
 			if (value!= undefined && $scope.limit < 1 && $scope.existing_lists[key].indexOf(value)<0){
+				console.log($scope.existing_lists[key])
 				$scope.existing_lists[key].push(value);
+				console.log($scope.existing_lists[key])
 				$scope.acc_lists[key].splice($scope.acc_lists[key].indexOf(value), 1);
 				$scope.limit ++;
 			}

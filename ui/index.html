@@ -22,13 +22,14 @@
 
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs/dt-1.10.12/datatables.min.css"/>
 
+    <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/angular_material/1.0.0/angular-material.min.css">
 
 </head>
 
 <body ng-app="assetsApp">
     <ui-view></ui-view>
     <!-- jQuery -->
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.10/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
 
     <script type="text/javascript" src="/dist/js/angular-sanitize.js"></script>
 
@@ -36,15 +37,17 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-router/0.2.10/angular-ui-router.js"></script>
 
+    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-animate.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-aria.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-messages.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/angular_material/1.0.0/angular-material.min.js"></script>
+
     <script src="/javascripts/angularApp.js"></script>
 
     <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
 
     <!-- Bootstrap Core JavaScript -->
     <script src="/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
-
-    <script src="https://twitter.github.io/typeahead.js/releases/latest/typeahead.bundle.js"></script>
-
 
     <script type="text/ng-template" id="/home.ejs">
         <br></br>
@@ -224,7 +227,7 @@
                                         <td ng-if="checkType(val)==='arr'">
                                         <div class="row">
                                             <div class="col-xs-6">
-                                                <form ng-submit="updateVal(key, val, index, value, true, false)" method="POST">
+                                                <form id="arrform" ng-submit="updateVal(key, val, index, value, true, false)" method="POST">
                                                     <input class="form-control" type="hidden" name="host" value={{pillar._id}}>
                                                     <input class="form-control" type="hidden" name="key" value={{key}}>
                                                     <div class="col-xs-1">
@@ -258,14 +261,39 @@
                                         </div>
                                         </td>
                                         <td>
-                                        <div class="col-xs-6" id="the-basics">
+                                        <div class="col-xs-8">
                                             <select required id="add" ng-if="pillar_attrs[key]['type']=='select'" ng-model="selected" ng-click="collectElems(selected, false)" ng-attr-size="{{acc_lists[key].length+1}}" multiple>
                                                 <option disabled value="">-- choose one --</option>
                                                 <option ng-if="pillar_attrs[key]['editable']===false" disabled ng-repeat="item in acc_lists[key] track by $index" value="{&quot;{{item+','+key}}&quot;: {{$index}}}">{{item}}</option>
                                                 <option ng-if="pillar_attrs[key]['editable']" ng-repeat="item in acc_lists[key] track by $index" value="{&quot;{{item+','+key}}&quot;: {{$index}}}">{{item}}</option>
                                             </select>
-                                            <input ng-show="pillar_attrs[key]['type']=='text'" form="strform" size="15" type="text" name="val" ng-model="strvalue">
-                                            <div id="opts" ng-init="accessSearchKey(key)" ng-if="pillar_attrs[key]['type']=='autofill'"><input ng-controller="p" class="typeahead"></div>
+                                            <input ng-show="pillar_attrs[key]['type']=='text'" size="15" type="text" ng-model="strvalue">
+                                            <input ng-show="pillar_attrs[key]['type']=='autofill'" size="15" type="text" ng-model="value">
+      <div ng-controller="MainCtrl as ctrl" layout="column" ng-cloak ng-if="pillar_attrs[key]['type']=='autofill'">
+         <md-content class="md-padding">
+            <form="arrform" ng-model="value">
+               <md-autocomplete
+                  md-no-cache="ctrl.noCache"
+                  md-selected-item="ctrl.selectedItem"
+                  md-search-text-change="ctrl.searchTextChange(ctrl.searchText)"
+                  md-search-text="ctrl.searchText"
+                  md-selected-item-change="ctrl.selectedItemChange(item, key, val, false)"
+                  md-items="item in ctrl.querySearch(ctrl.searchText, key)"
+                  md-item-text="item.display"
+                  md-min-length="0"
+                  placeholder="Enter Value">
+                  <md-item-template>
+                     <span md-highlight-text="ctrl.searchText" md-highlight-flags="^i">{{item.display}}</span>
+                  </md-item-template>
+                  <md-not-found>
+                     Nope
+                     <a ng-click="ctrl.newState(ctrl.searchText)">Create a new one!</a>
+                  </md-not-found>
+               </md-autocomplete>
+               <br/>
+            </form>
+         </md-content>
+      </div>
                                         </div>
                                         </td>
                                         </div>
