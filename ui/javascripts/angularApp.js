@@ -1,4 +1,4 @@
-//todo: need to bind autofill bar with add button to properly retrieve value
+//todo: clear autofill bar once added to list.
 var get_counter = 0;
 var assetsApp = angular.module('assetsApp', ['ui.router', 'ngSanitize', 'ngCsv', 'ngMaterial']);
 
@@ -91,15 +91,12 @@ assetsApp.controller('MainCtrl', [
 '$q',
 '$log',
 function($scope, assets, $http, $window, $location, CSV, $timeout, $q, $log) {
-	var self = this;
-	self.simulateQuery = false;
-	self.isDisabled    = false;
-	self.querySearch   = querySearch;
-	self.selectedItemChange = selectedItemChange;
-	self.searchTextChange   = searchTextChange;
-	self.newState = newState;
-	$scope.opts=["this", "that", "It Worked!!!!"];
-	$scope.inside=[];
+	$scope.simulateQuery = false;
+	$scope.isDisabled    = false;
+	$scope.querySearch   = querySearch;
+	$scope.selectedItemChange = selectedItemChange;
+	$scope.searchTextChange   = searchTextChange;
+	$scope.newState = newState;
 	$scope.sortType = 'host';
 	$scope.sortReverse = false;
 	$scope.search = '';
@@ -110,13 +107,12 @@ function($scope, assets, $http, $window, $location, CSV, $timeout, $q, $log) {
 	$scope.possible_homepage_fields = [];
 	$scope.selected_homepage_fields = {};
 	//empty object which will contain all current values that are pulled from http call
-	$scope.existing_lists ={};
+	$scope.existing_lists = {};
 
 	function newState(state) {
 	  console.log("This functionality is yet to be implemented!");
 	}    
 	function querySearch (query, key) {
-		console.log("in")
 		self.options = loadStates(key);
 	  var results = query ? self.options.filter( createFilterFor(query) ) : self.options, deferred;
 	  if (self.simulateQuery) {
@@ -133,12 +129,12 @@ function($scope, assets, $http, $window, $location, CSV, $timeout, $q, $log) {
 	function searchTextChange(text) {
 	  $log.info('Text changed to ' + text);
 	}
-	function selectedItemChange(item, key, val, removeFlag) {
+	function selectedItemChange(item={}, key, removeFlag) {
 	  $scope.key = key;
 	  $scope.value = item['value'];
 	  $scope.index = $scope.acc_lists[key].indexOf($scope.value);
 	  $scope.limit = 0;
-	  $scope.master_index = $scope.list_index.sort().indexOf($scope.key);
+	  $scope.master_index = $scope.list_index.indexOf($scope.key);
 		try {
 			if(removeFlag===true){
 			    document.getElementById("addBut"+$scope.master_index).disabled = true;
@@ -337,6 +333,7 @@ function($scope, assets, $http, $window, $location, CSV, $timeout, $q, $log) {
 				}
 			}
 			$scope.initial_vals = JSON.stringify($scope.existing_lists);
+			console.log($scope.list_index);
 		});
 	}
 
@@ -429,8 +426,7 @@ function($scope, assets, $http, $window, $location, CSV, $timeout, $q, $log) {
 	}
 
 	$scope.collectElems = function(item, removeFlag){
-		//called whenever a value is clicked to grab information
-		console.log(item);
+		//called whenever a value is clicked to grab information;
 		if(item != undefined){
 			obj = JSON.parse(item);
 			$scope.index = obj[Object.keys(obj)[0]];
@@ -438,7 +434,7 @@ function($scope, assets, $http, $window, $location, CSV, $timeout, $q, $log) {
 			$scope.key = Object.keys(obj)[0].substr(Object.keys(obj)[0].indexOf(',')+1);
 			$scope.limit = 0;
 		}
-		$scope.master_index = $scope.list_index.sort().indexOf($scope.key);
+		$scope.master_index = $scope.list_index.indexOf($scope.key);
 		//disables add/remove button depending on if clicked value is in acc_lists/existing_lists
 		try {
 			if(removeFlag===true){
@@ -470,21 +466,14 @@ function($scope, assets, $http, $window, $location, CSV, $timeout, $q, $log) {
 	}
 
 	$scope.updateVal = function(key, val, index, value, addFlag, removeFlag){
-		console.log(key);
-		console.log(val);
-		console.log(index);
-		console.log(value);
-		console.log(addFlag);
-		console.log(removeFlag);
 		$scope.save_status = false;
-		$scope.row_index = $scope.list_index.sort().indexOf(key);
+		$scope.row_index = $scope.list_index.indexOf(key);
 		if (addFlag === true) {
+			$scope.limit = 0;
 			$('#add option').attr('selected', null);
 			document.getElementById("rem").disabled = false;
 			if (value!= undefined && $scope.limit < 1 && $scope.existing_lists[key].indexOf(value)<0){
-				console.log($scope.existing_lists[key])
 				$scope.existing_lists[key].push(value);
-				console.log($scope.existing_lists[key])
 				$scope.acc_lists[key].splice($scope.acc_lists[key].indexOf(value), 1);
 				$scope.limit ++;
 			}
