@@ -219,8 +219,24 @@ function($scope, assets, $http, $window, $location, CSV, $timeout, $q, $log) {
 				}
 				$scope.authorizedUser = true;
 			}
-			//$scope.authorizedUser = true;
 		});
+	}
+
+	//populates possible_fields_array for homepage layout modification
+	$scope.createPossibleFieldsArray = function (arr) {
+		for(var i=0; i<arr.length; i++){
+			for (var elem in arr[i]) {
+				if($.inArray(elem, $scope.possible_homepage_fields)==-1){
+					$scope.possible_homepage_fields.push(elem);
+				}
+				if($.inArray(elem, $scope.homepage_fields)>-1){
+					$scope.selected_homepage_fields[elem]=true;
+				} else {
+					$scope.selected_homepage_fields[elem]=false;
+				}
+			}
+		}
+		$scope.possible_homepage_fields = $scope.possible_homepage_fields.sort();
 	}
 
 	$scope.addAssets = function(id){
@@ -257,22 +273,6 @@ function($scope, assets, $http, $window, $location, CSV, $timeout, $q, $log) {
 	    });
 	};
 
-	//populates possible_fields_array for homepage layout modification
-	$scope.createPossibleFieldsArray = function (arr) {
-		for(var i=0; i<arr.length; i++){
-			for (var elem in arr[i]) {
-				if($.inArray(elem, $scope.possible_homepage_fields)==-1){
-					$scope.possible_homepage_fields.push(elem);
-				}
-				if($.inArray(elem, $scope.homepage_fields)>-1){
-					$scope.selected_homepage_fields[elem]=true;
-				} else {
-					$scope.selected_homepage_fields[elem]=false;
-				}
-			}
-		}
-		$scope.possible_homepage_fields = $scope.possible_homepage_fields.sort();
-	}
 
 	$scope.accessAsset = function(id){
 		assets.this_asset = [];
@@ -333,7 +333,6 @@ function($scope, assets, $http, $window, $location, CSV, $timeout, $q, $log) {
 				}
 			}
 			$scope.initial_vals = JSON.stringify($scope.existing_lists);
-			console.log($scope.list_index);
 		});
 	}
 
@@ -666,7 +665,7 @@ function($scope, assets, $http, $window, $location, CSV, $timeout, $q, $log) {
 		}
 
 
-	if($scope.this_id && $scope.this_id.length<15){
+	if($scope.this_id && $scope.this_id.length<20){
 		$scope.accessAsset($scope.this_id);
 		$scope.accessJobs();
 	} else if ($scope.this_id && $scope.this_id.length>15){
