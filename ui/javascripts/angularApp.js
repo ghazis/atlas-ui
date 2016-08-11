@@ -241,17 +241,22 @@ function($scope, assets, $http, $window, $location, CSV, $timeout, $q, $log) {
 
 	$scope.addAssets = function(id){
 	    $http.get('/api/assets/').success(function(data, headers) {
-	    	var max_length = 0;
+	    	var max_win_length = 0;
+	    	var max_lin_length = 0;
 			for (var i=0;i<data.length;i++){
 				var asset_container = {};
-				if(Object.keys(data[i]).length > max_length){
-					max_length = Object.keys(data[i]).length
-					$scope.lrgst_asset = data[i];
+				if(Object.keys(data[i]).length > max_win_length && data[i]['os'] == 'Windows'){
+					max_win_length = Object.keys(data[i]).length
+					var lrgst_win_asset = data[i];
+				} else if (Object.keys(data[i]).length > max_lin_length && data[i]['os'] != 'Windows') {
+					max_lin_length = Object.keys(data[i]).length
+					var lrgst_lin_asset = data[i];
 				}
 			}
+			var lrgst_asset = $.extend(lrgst_win_asset, lrgst_lin_asset);
 			for (var i=0;i<data.length;i++){
 				var asset_container = {};
-				for(var item in $scope.lrgst_asset){
+				for(var item in lrgst_asset){
 					asset_container[item] = data[i][item] || "N/A";
 					//checks if array has one element. If it does then converts to string.
 					if ($scope.checkType(asset_container[item]) === 'arr'){
