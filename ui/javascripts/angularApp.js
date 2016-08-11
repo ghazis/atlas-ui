@@ -1,5 +1,7 @@
+//todo: clear autofill bar once added to list.
 var get_counter = 0;
-var assetsApp = angular.module('assetsApp', ['ui.router', 'ngSanitize', 'ngCsv']);
+var assetsApp = angular.module('assetsApp', ['ui.router', 'ngSanitize', 'ngCsv', 'ngMaterial']);
+
 assetsApp.config([
 '$stateProvider',
 '$urlRouterProvider',
@@ -85,7 +87,16 @@ assetsApp.controller('MainCtrl', [
 '$window',
 '$location',
 'CSV',
-function($scope, assets, $http, $window, $location, CSV) {
+'$timeout',
+'$q',
+'$log',
+function($scope, assets, $http, $window, $location, CSV, $timeout, $q, $log) {
+	$scope.simulateQuery = false;
+	$scope.isDisabled    = false;
+	$scope.querySearch   = querySearch;
+	$scope.selectedItemChange = selectedItemChange;
+	$scope.searchTextChange   = searchTextChange;
+	$scope.newState = newState;
 	$scope.sortType = 'host';
 	$scope.sortReverse = false;
 	$scope.search = '';
@@ -96,7 +107,64 @@ function($scope, assets, $http, $window, $location, CSV) {
 	$scope.possible_homepage_fields = [];
 	$scope.selected_homepage_fields = {};
 	//empty object which will contain all current values that are pulled from http call
-	$scope.existing_lists ={};
+	$scope.existing_lists = {};
+
+	function newState(state) {
+	  console.log("This functionality is yet to be implemented!");
+	}    
+	function querySearch (query, key) {
+		self.options = loadStates(key);
+	  var results = query ? self.options.filter( createFilterFor(query) ) : self.options, deferred;
+	  if (self.simulateQuery) {
+	     deferred = $q.defer();
+	     $timeout(function () { 
+	           deferred.resolve( results ); 
+	        }, 
+	        Math.random() * 1000, false);
+	     return deferred.promise;
+	  } else {
+	     return results;
+	  }
+	}
+	function searchTextChange(text) {
+	  $log.info('Text changed to ' + text);
+	}
+	function selectedItemChange(item={}, key, removeFlag) {
+	  $scope.key = key;
+	  $scope.value = item['value'];
+	  $scope.index = $scope.acc_lists[key].indexOf($scope.value);
+	  $scope.limit = 0;
+	  $scope.master_index = $scope.list_index.indexOf($scope.key);
+		try {
+			if(removeFlag===true){
+			    document.getElementById("addBut"+$scope.master_index).disabled = true;
+			    document.getElementById("remBut"+$scope.master_index).disabled = false;
+			}
+			if(removeFlag===false){
+				document.getElementById("remBut"+$scope.master_index).disabled = true;
+				document.getElementById("addBut"+$scope.master_index).disabled = false;
+			}
+		} catch (e) {
+
+		}
+	}
+
+	function loadStates(key) {
+	  var options = $scope.acc_lists[key];
+	  return options.map( function (option) {
+	     return {
+	        value: option.toLowerCase(),
+	        display: option
+	     };
+	  });
+	}
+	//filter function for search query
+	function createFilterFor(query) {
+	  var lowercaseQuery = angular.lowercase(query);
+	  return function filterFn(option) {
+	     return (option.value.indexOf(lowercaseQuery) === 0);
+	  };
+	}
 
 	$scope.setSortType = function(field) {
 		$scope.sortReverse=!$scope.sortReverse;
@@ -109,6 +177,7 @@ function($scope, assets, $http, $window, $location, CSV) {
 			return "undefined";
 		}
 	    if (item.constructor === Object){
+	    	$scope.pretty_obj = JSON.stringify(item, null, 2);
 	   		return "dict";
 		} else if (item.constructor === Array){
 	   		return "arr";
@@ -131,6 +200,7 @@ function($scope, assets, $http, $window, $location, CSV) {
 					var pillar_attrs = {};
 					pillar_attrs['visible'] = data[k]['visible'];
 					pillar_attrs['editable'] = data[k]['editable'];
+					pillar_attrs['type'] = data[k]['type'];
 					$scope.pillar_attrs[data[k]['name']] = pillar_attrs;
 				}
 			}
@@ -149,23 +219,44 @@ function($scope, assets, $http, $window, $location, CSV) {
 				}
 				$scope.authorizedUser = true;
 			}
-			//$scope.authorizedUser = true;
 		});
+	}
+
+	//populates possible_fields_array for homepage layout modification
+	$scope.createPossibleFieldsArray = function (arr) {
+		for(var i=0; i<arr.length; i++){
+			for (var elem in arr[i]) {
+				if($.inArray(elem, $scope.possible_homepage_fields)==-1){
+					$scope.possible_homepage_fields.push(elem);
+				}
+				if($.inArray(elem, $scope.homepage_fields)>-1){
+					$scope.selected_homepage_fields[elem]=true;
+				} else {
+					$scope.selected_homepage_fields[elem]=false;
+				}
+			}
+		}
+		$scope.possible_homepage_fields = $scope.possible_homepage_fields.sort();
 	}
 
 	$scope.addAssets = function(id){
 	    $http.get('/api/assets/').success(function(data, headers) {
-	    	var max_length = 0;
+	    	var max_win_length = 0;
+	    	var max_lin_length = 0;
 			for (var i=0;i<data.length;i++){
 				var asset_container = {};
-				if(Object.keys(data[i]).length > max_length){
-					max_length = Object.keys(data[i]).length
-					$scope.lrgst_asset = data[i];
+				if(Object.keys(data[i]).length > max_win_length && data[i]['os'] == 'Windows'){
+					max_win_length = Object.keys(data[i]).length
+					var lrgst_win_asset = data[i];
+				} else if (Object.keys(data[i]).length > max_lin_length && data[i]['os'] != 'Windows') {
+					max_lin_length = Object.keys(data[i]).length
+					var lrgst_lin_asset = data[i];
 				}
 			}
+			var lrgst_asset = $.extend(lrgst_win_asset, lrgst_lin_asset);
 			for (var i=0;i<data.length;i++){
 				var asset_container = {};
-				for(var item in $scope.lrgst_asset){
+				for(var item in lrgst_asset){
 					asset_container[item] = data[i][item] || "N/A";
 					//checks if array has one element. If it does then converts to string.
 					if ($scope.checkType(asset_container[item]) === 'arr'){
@@ -187,22 +278,6 @@ function($scope, assets, $http, $window, $location, CSV) {
 	    });
 	};
 
-	//populates possible_fields_array for homepage layout modification
-	$scope.createPossibleFieldsArray = function (arr) {
-		for(var i=0; i<arr.length; i++){
-			for (var elem in arr[i]) {
-				if($.inArray(elem, $scope.possible_homepage_fields)==-1){
-					$scope.possible_homepage_fields.push(elem);
-				}
-				if($.inArray(elem, $scope.homepage_fields)>-1){
-					$scope.selected_homepage_fields[elem]=true;
-				} else {
-					$scope.selected_homepage_fields[elem]=false;
-				}
-			}
-		}
-		$scope.possible_homepage_fields = $scope.possible_homepage_fields.sort();
-	}
 
 	$scope.accessAsset = function(id){
 		assets.this_asset = [];
@@ -355,7 +430,7 @@ function($scope, assets, $http, $window, $location, CSV) {
 	}
 
 	$scope.collectElems = function(item, removeFlag){
-		//called whenever a value is clicked to grab information
+		//called whenever a value is clicked to grab information;
 		if(item != undefined){
 			obj = JSON.parse(item);
 			$scope.index = obj[Object.keys(obj)[0]];
@@ -363,7 +438,7 @@ function($scope, assets, $http, $window, $location, CSV) {
 			$scope.key = Object.keys(obj)[0].substr(Object.keys(obj)[0].indexOf(',')+1);
 			$scope.limit = 0;
 		}
-		$scope.master_index = $scope.list_index.sort().indexOf($scope.key);
+		$scope.master_index = $scope.list_index.indexOf($scope.key);
 		//disables add/remove button depending on if clicked value is in acc_lists/existing_lists
 		try {
 			if(removeFlag===true){
@@ -396,8 +471,9 @@ function($scope, assets, $http, $window, $location, CSV) {
 
 	$scope.updateVal = function(key, val, index, value, addFlag, removeFlag){
 		$scope.save_status = false;
-		$scope.row_index = $scope.list_index.sort().indexOf(key);
+		$scope.row_index = $scope.list_index.indexOf(key);
 		if (addFlag === true) {
+			$scope.limit = 0;
 			$('#add option').attr('selected', null);
 			document.getElementById("rem").disabled = false;
 			if (value!= undefined && $scope.limit < 1 && $scope.existing_lists[key].indexOf(value)<0){
@@ -440,8 +516,10 @@ function($scope, assets, $http, $window, $location, CSV) {
 			for (item in $scope.filtered_data[i]){
 				for (var j=0; j<$scope.homepage_fields.length; j++){
 					if ($scope.homepage_fields[j] == item && item != 'host'){
-						if ($scope.filtered_data[i][item].constructor == Array){
+						if ($scope.checkType($scope.filtered_data[i][item]) == 'arr'){
 							filtered_part[item] = JSON.stringify($scope.filtered_data[i][item].join(", "));
+						} else if ($scope.checkType($scope.filtered_data[i][item]) == 'dict') {
+							filtered_part[item] = JSON.stringify($scope.filtered_data[i][item]);
 						} else {
 							filtered_part[item] = $scope.filtered_data[i][item];
 						}
@@ -592,7 +670,7 @@ function($scope, assets, $http, $window, $location, CSV) {
 		}
 
 
-	if($scope.this_id && $scope.this_id.length<15){
+	if($scope.this_id && $scope.this_id.length<20){
 		$scope.accessAsset($scope.this_id);
 		$scope.accessJobs();
 	} else if ($scope.this_id && $scope.this_id.length>15){
