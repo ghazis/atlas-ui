@@ -59,7 +59,7 @@
                 <div class="panel-body">
                     <div class="input-group">
                         <div class="input-group-addon"><i class="fa fa-search"></i></div>
-                        <input type="text" class="form-control" placeholder="Filter Table" ng-model="search">
+                        <input type="text" class="form-control" placeholder="Filter Table" ng-model="searches.search">
                     </div>
                     <br></br>
                     <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#myModal">Add/Remove Fields</button>
@@ -101,11 +101,12 @@
                                         <a href="" ng-click="setSortType(field);">{{field}}</a>
                                         <span ng-show="sortType == field && !sortReverse" class="fa fa-caret-down"></span>
                                         <span ng-show="sortType == field && sortReverse" class="fa fa-caret-up"></span>
+                                        <input type="text" class="form-control input-sm" placeholder="Search" ng-model="searches.col_search[field]">
                                     </th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr ng-repeat="asset in ($parent.filtered_data = (assets | orderBy:sortType:sortReverse | filter:search))">
+                                <tr ng-repeat="asset in ($parent.filtered_data = (assets | orderBy:sortType:sortReverse | filter:searches.search | filter:searches.col_search))">
                                     <td class="text-center col-md-1">{{   }}<a href='#/asset?id={{asset.minion}}'><button type="button" class="btn btn-primary btn-circle"><i class="fa fa-list"></i>
                                     </button></a>
                                     <td ng-repeat='field in homepage_fields'>

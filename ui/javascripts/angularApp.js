@@ -99,7 +99,10 @@ function($scope, assets, $http, $window, $location, CSV, $timeout, $q, $log) {
 	$scope.newState = newState;
 	$scope.sortType = 'host';
 	$scope.sortReverse = false;
-	$scope.search = '';
+	$scope.searches = {
+		search: '',
+		col_search: ''
+	}
 	$scope.assets = assets.assets;
 	$scope.list_index = [];
 	$scope.modified_rows_index = [];
