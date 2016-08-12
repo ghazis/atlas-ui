@@ -1,4 +1,4 @@
-//todo: clear autofill bar once added to list.
+//todo: fix new_values for tags so they save properly in db
 var get_counter = 0;
 var assetsApp = angular.module('assetsApp', ['ui.router', 'ngSanitize', 'ngCsv', 'ngMaterial']);
 
@@ -129,8 +129,10 @@ function($scope, assets, $http, $window, $location, CSV, $timeout, $q, $log) {
 	     return results;
 	  }
 	}
-	function searchTextChange(text) {
-	  $log.info('Text changed to ' + text);
+	function searchTextChange(text, key) {
+	  if($scope.acc_lists[key].indexOf(text)<0 && text != '') {
+	  	$scope.new_entry = text;
+	  }
 	}
 	function selectedItemChange(item={}, key, removeFlag) {
 	  $scope.key = key;
@@ -473,6 +475,10 @@ function($scope, assets, $http, $window, $location, CSV, $timeout, $q, $log) {
 	}
 
 	$scope.updateVal = function(key, val, index, value, addFlag, removeFlag){
+		if (value == undefined && $scope.new_entry != undefined){
+			value = $scope.new_entry;
+			var new_config_val = true;
+		}
 		$scope.save_status = false;
 		$scope.row_index = $scope.list_index.indexOf(key);
 		if (addFlag === true) {
@@ -483,6 +489,11 @@ function($scope, assets, $http, $window, $location, CSV, $timeout, $q, $log) {
 				$scope.existing_lists[key].push(value);
 				$scope.acc_lists[key].splice($scope.acc_lists[key].indexOf(value), 1);
 				$scope.limit ++;
+				if(new_config_val == true) {
+					var new_vals = $scope.existing_lists[key].concat($scope.acc_lists[key]);
+					console.log(new_vals)
+					saveConfigVals(key, new_vals);
+				}
 			}
 		} else if (removeFlag === true) {
 			$('#rem option').attr('selected', null);
@@ -533,6 +544,22 @@ function($scope, assets, $http, $window, $location, CSV, $timeout, $q, $log) {
 		}
 		$scope.filtered_data = filtered_data;
 		return $scope.filtered_data;
+	}
+
+	function saveConfigVals(field, vals) {
+	    $http({
+	      method  : 'POST',
+	      url     : '/api/config/',
+	      data    : $.param({
+	    	field_name: angular.toJson(field),
+	    	new_vals: angular.toJson(vals)
+	    }),
+	      headers : {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'} 
+	     })
+	      .success(function(data) {
+	      }).error(function(data){
+	      	// console.log("did not work");
+	      })
 	}
 
 	$scope.saveChanges = function() {

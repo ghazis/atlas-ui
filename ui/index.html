@@ -274,7 +274,7 @@
                <md-autocomplete
                   md-no-cache="noCache"
                   md-selected-item="searchedItem"
-                  md-search-text-change="searchTextChange(searchText)"
+                  md-search-text-change="searchTextChange(searchText, key)"
                   md-search-text="searchText"
                   md-selected-item-change="selectedItemChange(item, key, false)"
                   md-items="item in querySearch(searchText, key)"
@@ -284,10 +284,6 @@
                   <md-item-template>
                      <span md-highlight-text="searchText" md-highlight-flags="^i">{{item.display}}</span>
                   </md-item-template>
-                  <md-not-found>
-                     Nope
-                     <a ng-click="newState(searchText)">Create a new one!</a>
-                  </md-not-found>
                </md-autocomplete>
                <br/>
          </md-content>
