@@ -285,6 +285,7 @@ def set_config():
     field_name = params.get('field_name', None)
     new_vals = params.get('new_vals', None)
     try:
+        field_name = json.loads(field_name)
         new_vals = json.loads(new_vals)
     except ValueError:
         logger.error('error="failed to parse JSON" request request_id="{}" field_name="{}" new_vals="{}"'
@@ -294,7 +295,7 @@ def set_config():
     logger.info('action=update config field values field_name="{}" new_vals="{}"'.format(field_name, new_vals))
     db.config.update(
         {'name': field_name}, {'$set': {"values": new_vals}},
-        upsert=True)
+        upsert=False)
 
     return "OK", 200
 

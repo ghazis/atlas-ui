@@ -1,4 +1,3 @@
-//todo: fix new_values for tags so they save properly in db
 var get_counter = 0;
 var assetsApp = angular.module('assetsApp', ['ui.router', 'ngSanitize', 'ngCsv', 'ngMaterial']);
 
@@ -130,28 +129,18 @@ function($scope, assets, $http, $window, $location, CSV, $timeout, $q, $log) {
 	  }
 	}
 	function searchTextChange(text, key) {
-	  if($scope.acc_lists[key].indexOf(text)<0 && text != '') {
-	  	$scope.new_entry = text;
-	  }
+		$scope.master_index = $scope.list_index.indexOf(key);
+		document.getElementById("remBut"+$scope.master_index).disabled = true;
+		document.getElementById("addBut"+$scope.master_index).disabled = false;
+		if($scope.acc_lists[key].indexOf(text)<0 && text != '') {
+			$scope.new_entry = text;
+		}
 	}
 	function selectedItemChange(item={}, key, removeFlag) {
 	  $scope.key = key;
 	  $scope.value = item['value'];
 	  $scope.index = $scope.acc_lists[key].indexOf($scope.value);
 	  $scope.limit = 0;
-	  $scope.master_index = $scope.list_index.indexOf($scope.key);
-		try {
-			if(removeFlag===true){
-			    document.getElementById("addBut"+$scope.master_index).disabled = true;
-			    document.getElementById("remBut"+$scope.master_index).disabled = false;
-			}
-			if(removeFlag===false){
-				document.getElementById("remBut"+$scope.master_index).disabled = true;
-				document.getElementById("addBut"+$scope.master_index).disabled = false;
-			}
-		} catch (e) {
-
-		}
 	}
 
 	function loadStates(key) {
@@ -477,7 +466,7 @@ function($scope, assets, $http, $window, $location, CSV, $timeout, $q, $log) {
 	$scope.updateVal = function(key, val, index, value, addFlag, removeFlag){
 		if (value == undefined && $scope.new_entry != undefined){
 			value = $scope.new_entry;
-			var new_config_val = true;
+			$scope.new_config_val = true;
 		}
 		$scope.save_status = false;
 		$scope.row_index = $scope.list_index.indexOf(key);
@@ -487,12 +476,13 @@ function($scope, assets, $http, $window, $location, CSV, $timeout, $q, $log) {
 			document.getElementById("rem").disabled = false;
 			if (value!= undefined && $scope.limit < 1 && $scope.existing_lists[key].indexOf(value)<0){
 				$scope.existing_lists[key].push(value);
-				$scope.acc_lists[key].splice($scope.acc_lists[key].indexOf(value), 1);
+				if($scope.acc_lists[key].indexOf(value)>0){
+					$scope.acc_lists[key].splice($scope.acc_lists[key].indexOf(value), 1);
+				}
 				$scope.limit ++;
-				if(new_config_val == true) {
-					var new_vals = $scope.existing_lists[key].concat($scope.acc_lists[key]);
-					console.log(new_vals)
-					saveConfigVals(key, new_vals);
+				if($scope.new_config_val == true) {
+					$scope.new_vals = $scope.existing_lists[key].concat($scope.acc_lists[key]);
+					$scope.key = key;
 				}
 			}
 		} else if (removeFlag === true) {
@@ -584,6 +574,9 @@ function($scope, assets, $http, $window, $location, CSV, $timeout, $q, $log) {
 	        $scope.modified_rows_index = [];
 	        $scope.colorRow(null, null, true);
 	        $scope.reset_buttons();
+	        if($scope.new_config_val == true) {
+	        	saveConfigVals($scope.key, $scope.new_vals);
+	    	}
 		}
 	}
 
