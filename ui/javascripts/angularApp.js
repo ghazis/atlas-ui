@@ -233,7 +233,10 @@ function($scope, assets, $http, $window, $location, CSV, $timeout, $q, $log) {
 		$scope.possible_homepage_fields = $scope.possible_homepage_fields.sort();
 	}
 
-	$scope.addAssets = function(id){
+	$scope.addAssets = function(firstRun){
+		if(firstRun != true){
+			assets.assets = [];
+		}
 	    $http.get('/api/assets/').success(function(data, headers) {
 	    	var max_win_length = 0;
 	    	var max_lin_length = 0;
@@ -688,15 +691,17 @@ function($scope, assets, $http, $window, $location, CSV, $timeout, $q, $log) {
 
 	//ensures assets are not added to table multiple times by pressing back button
 	if(get_counter === 0){
-		$window.onload = $scope.addAssets();
+		$window.onload = $scope.addAssets(true);
 		get_counter += 1;
-		}
+	} else {
+		$window.onload = $scope.addAssets(false);
+	}
 
 
 	if($scope.this_id && $scope.this_id.length<20){
 		$scope.accessAsset($scope.this_id);
 		$scope.accessJobs();
-	} else if ($scope.this_id && $scope.this_id.length>15){
+	} else if ($scope.this_id && $scope.this_id.length>=20){
 		$scope.accessRuns();
 	}
 	$scope.this_asset = assets.this_asset;
