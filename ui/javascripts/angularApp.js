@@ -137,6 +137,8 @@ function($scope, assets, $http, $window, $location, CSV, $timeout, $q, $log) {
 		}
 	}
 	function selectedItemChange(item={}, key, removeFlag) {
+      document.getElementById("remBut"+$scope.master_index).disabled = true;
+	  document.getElementById("addBut"+$scope.master_index).disabled = false;
 	  $scope.key = key;
 	  $scope.value = item['value'];
 	  $scope.index = $scope.acc_lists[key].indexOf($scope.value);
