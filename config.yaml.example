@@ -1,0 +1,15 @@
+port: 30102
+
+user_dn: CN=AD Bind Service Account,OU=ServiceAccounts,OU=GENEVATRADING,DC=genevatrading,DC=com
+user_pw: some_password
+ldap_server: genevatrading.com
+
+mongo_server: localhost
+mongo_port: 27017
+mongo_atlas_db: atlas-dev
+mongo_salt_db: salt-dev
+mongo_user: atlas_reader
+mongo_pw: some_password
+
+log_file: /var/log/gt/atlas-webservice.log
+log_level: info

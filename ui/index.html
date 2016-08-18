@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>GT Atlas</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="/bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="/dist/css/sb-admin-2.css" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="/bower_components/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs/dt-1.10.12/datatables.min.css"/>
+
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/angular_material/1.0.0/angular-material.min.css">
+
+</head>
+
+<body ng-app="assetsApp">
+    <ui-view></ui-view>
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+
+    <script type="text/javascript" src="/dist/js/angular-sanitize.js"></script>
+
+    <script type="text/javascript" src="/dist/js/ng-csv.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-router/0.2.10/angular-ui-router.js"></script>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-animate.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-aria.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-messages.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.0.0/angular-material.min.js"></script>
+
+    <script src="/javascripts/angularApp.js"></script>
+
+    <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+
+    <script type="text/ng-template" id="/home.ejs">
+        <br></br>
+        <div class="col-lg-12">
+            <div class="panel panel-default">
+                <div class="panel-heading text-center">
+                        GT Atlas
+                </div>
+                <div class="panel-body">
+                    <div class="input-group">
+                        <div class="input-group-addon"><i class="fa fa-search"></i></div>
+                        <input type="text" class="form-control" placeholder="Filter Table" ng-model="search">
+                    </div>
+                    <br></br>
+                    <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#myModal">Add/Remove Fields</button>
+                    <button class="btn btn-primary btn-sm" filename="atlas_data.csv" ng-csv="createExportData()" csv-label="true">Export CSV</button>
+                    <br></br>
+                    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                    <h4 class="modal-title" id="myModalLabel">Displayed Fields</h4>
+                                </div>
+                                <label>&nbsp</label>
+                                <div class="form-group col-xs-offset-1">
+                                    <label>Please Select Which Fields You Would Like Displayed</label>
+                                    <div class="checkbox" ng-repeat="field in possible_homepage_fields">
+                                        <div class="col-md-4">
+                                            <input type="checkbox" value="field" ng-model="selected_homepage_fields[field]">{{field}}</input>
+                                        </div>
+                                    </div>
+                                </div>
+                                <label>&nbsp</label>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                    <button type="button" class="btn btn-primary" ng-click="saveHomepageLayout()" data-dismiss="modal">Save changes</button>
+                                </div>
+                            </div>
+                            <!-- /.modal-content -->
+                        </div>
+                        <!-- /.modal-dialog -->
+                    </div>
+                    <div class="table-responsive">
+                        <h2 class="text-center" ng-if="homepage_fields.length==0">Please Choose Fields To Display</h4>
+                        <table id="myTable" class="table table-striped table-bordered table-hover text-center" ng-if="homepage_fields.length>0">
+                            <thead>
+                                <tr>
+                                    <th style="text-align:center">Details</th>
+                                    <th style="text-align:center" ng-repeat="field in homepage_fields track by $index">
+                                        <a href="" ng-click="setSortType(field);">{{field}}</a>
+                                        <span ng-show="sortType == field && !sortReverse" class="fa fa-caret-down"></span>
+                                        <span ng-show="sortType == field && sortReverse" class="fa fa-caret-up"></span>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr ng-repeat="asset in ($parent.filtered_data = (assets | orderBy:sortType:sortReverse | filter:search))">
+                                    <td class="text-center col-md-1">{{   }}<a href='#/asset?id={{asset.minion}}'><button type="button" class="btn btn-primary btn-circle"><i class="fa fa-list"></i>
+                                    </button></a>
+                                    <td ng-repeat='field in homepage_fields'>
+                                        <div ng-if="checkType(asset[field])=='str'" >{{asset[field]}}</div>
+                                        <div ng-if="checkType(asset[field])=='arr'" >
+                                            <table>
+                                                <tr ng-repeat="item in asset[field]">
+                                                    <td>{{ item }}</td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                        <div ng-if="checkType(asset[field])=='dict'" ><pre>{{pretty_obj}}</pre></div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </script>
+
+    <script type="text/ng-template" id="/asset.ejs">
+        <div id="custom-page-wrapper" ng-repeat="asset in this_asset track by $index">
+            <div class="panel panel-default {{envClass}}">
+                <div class="panel-heading text-center">
+                    {{env}}{{asset.host}}<br>
+                </div>
+            </div>
+            <div class="col-lg-6" ng-repeat="asset in this_asset track by $index">
+                <div class="panel panel-default">
+                    <div class="panel-heading text-center">
+                        Attributes
+                    </div>
+                    <!-- /.panel-heading -->
+                    <div class="panel-body">
+                        <div class="table-responsive">
+                            <table class="table" id="data">
+
+                                <tbody ng-repeat="(key, val) in asset">
+                                    <tr ng-class='{"info":$index%2==0}'>
+                                        <td>{{key}}</td>
+                                        <td ng-if="checkType(val)==='str'">{{val}}</td>
+                                        <td class="dropdown" ng-if="checkType(val)==='arr'">
+                                        <b class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><button type="button" class="btn btn-primary btn-xs">List</button><span class="caret"></span></b>
+                                        <ul class="dropdown-menu">
+                                        <li ng-repeat="item in val track by $index"><a>{{item}}</a></li>
+                                        </ul>
+                                        </td>
+                                        <td class="dropdown" ng-if="checkType(val)==='dict'">
+                                        <b class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><button type="button" class="btn btn-primary btn-xs">Dict</button><span class="caret"></span></b>
+                                        <ul class="dropdown-menu">
+                                        <li ng-repeat="(key, val) in val"><a>{{key}}: {{val}}</a></li>
+                                        </ul>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- /.table-responsive -->
+                    </div>
+                    <!-- /.panel-body -->
+                </div>
+                <!-- /.panel -->
+            </div>
+
+
+            <div class="col-lg-6" ng-repeat="pillar in this_pillar track by $index">
+                <div class="panel panel-default">
+                    <div class="panel-heading text-center">
+                        Links
+                    </div>
+                    <!-- /.panel-heading -->
+                    <div class="panel-body text-center">
+                        <a href="https://splunk.genevatrading.com/en-US/app/infrastructure_app/linux_overview?form.search_host={{id}}"><button type="button" class="btn btn-outline btn-primary btn-md">Splunk</button></a>
+                        <a href='#/jobs?id={{asset.minion}}'><button type="button" class="btn btn-outline btn-primary btn-md" ng-click="accessJobs()">View All Jobs</button></a>
+                        <!-- /.table-responsive -->
+                    </div>
+                    <!-- /.panel-body -->
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading text-center">
+                        Editable Fields
+                    </div>
+                    <!-- /.panel-heading -->
+                    <div class="panel-body">
+                        <div class="table-responsive">
+                            <table class="table">
+
+                                <tbody ng-repeat="(key, val) in pillar">
+                                    <tr ng-class="colorRow(val,$index,false)">
+                                        <td>{{key}}</td>
+                                        <td ng-if="checkType(val)==='str'">
+                                        {{existing_lists[key]}}
+                                        </td>
+                                        <td ng-if="checkType(val)==='arr'">
+                                        <div class="col-xs-6">
+                                            <select required id="rem" ng-model="selected" ng-click="collectElems(selected, true)" ng-attr-size="{{val.length+1}}" multiple>
+                                                <option disabled value="">-- choose one --</option>
+                                                <option ng-if="pillar_attrs[key]['editable']==false" disabled id="opt" ng-repeat="item in existing_lists[key] track by $index" value="{&quot;{{item+','+key}}&quot;: {{$index}}}">{{item}}</option>
+                                                <option ng-if="pillar_attrs[key]['editable']" id="opt" ng-repeat="item in existing_lists[key] track by $index" value="{&quot;{{item+','+key}}&quot;: {{$index}}}">{{item}}</option>
+                                            </select> 
+                                        </div>
+                                        </td>
+                                        <td ng-if="checkType(val)==='str'">
+                                        <div class="row">
+                                            <div class="col-xs-6">
+                                                <form id="strform" ng-submit="updateVal(key, val, index, strvalue, false, false)" method="POST">
+                                                    <input class="form-control" type="hidden" name="host" value={{pillar._id}}>
+                                                    <input class="form-control" type="hidden" name="key" value={{key}}>
+                                                    <div class="col-xs-1">
+                                                    <button ng-if="pillar_attrs[key]['editable']==false" disabled type="submit" class="btn btn-primary btn-xs center-block">Change</button>
+                                                    <button ng-if="pillar_attrs[key]['editable']" type="submit" class="btn btn-primary btn-xs center-block">Change</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                        </td>
+                                        <td ng-if="checkType(val)==='arr'">
+                                        <div class="row">
+                                            <div class="col-xs-6">
+                                                <form ng-submit="updateVal(key, val, index, value, true, false)" method="POST">
+                                                    <input class="form-control" type="hidden" name="host" value={{pillar._id}}>
+                                                    <input class="form-control" type="hidden" name="key" value={{key}}>
+                                                    <div class="col-xs-1">
+                                                    <button ng-if="pillar_attrs[key]['editable']==false" disabled class="btn btn-primary btn-xs center-block" id="{{'addBut'+$index}}" type="submit">&nbsp&nbsp&nbspAdd&nbsp&nbsp&nbsp</button>
+                                                    <button ng-if="pillar_attrs[key]['editable']" class="btn btn-primary btn-xs center-block" id="{{'addBut'+$index}}" type="submit">&nbsp&nbsp&nbspAdd&nbsp&nbsp&nbsp</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-xs-6 center">
+                                                <span class="fa fa-long-arrow-left"></span>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-xs-6">
+                                                <form ng-submit="updateVal(key, val, index, value, false, true)" method="POST">
+                                                    <input class="form-control" type="hidden" name="host" value={{pillar._id}}>
+                                                    <input class="form-control" type="hidden" name="key" value={{key}}>
+                                                    <div class="col-xs-1">
+                                                        <button ng-if="pillar_attrs[key]['editable']==false" disabled  class="btn btn-primary btn-xs center-block" id="{{'remBut'+$index}}" type="submit">Remove</button>
+                                                        <button ng-if="pillar_attrs[key]['editable']" class="btn btn-primary btn-xs center-block" id="{{'remBut'+$index}}" type="submit">Remove</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-xs-6 center">
+                                                <span class="fa fa-long-arrow-right"></span>
+                                            </div>
+                                        </div>
+                                        </td>
+                                        <td>
+                                        <div class="col-xs-8">
+                                            <select required id="add" ng-if="pillar_attrs[key]['type']=='select'" ng-model="selected" ng-click="collectElems(selected, false)" ng-attr-size="{{acc_lists[key].length+1}}" multiple>
+                                                <option disabled value="">-- choose one --</option>
+                                                <option ng-if="pillar_attrs[key]['editable']===false" disabled ng-repeat="item in acc_lists[key] track by $index" value="{&quot;{{item+','+key}}&quot;: {{$index}}}">{{item}}</option>
+                                                <option ng-if="pillar_attrs[key]['editable']" ng-repeat="item in acc_lists[key] track by $index" value="{&quot;{{item+','+key}}&quot;: {{$index}}}">{{item}}</option>
+                                            </select>
+                                            <input ng-show="pillar_attrs[key]['type']=='text'" size="15" type="text" ng-model="strvalue">
+      <div layout="column" ng-cloak ng-if="pillar_attrs[key]['type']=='autofill'">
+         <md-content class="md-padding">
+               <md-autocomplete
+                  md-no-cache="noCache"
+                  md-selected-item="searchedItem"
+                  md-search-text-change="searchTextChange(searchText)"
+                  md-search-text="searchText"
+                  md-selected-item-change="selectedItemChange(item, key, false)"
+                  md-items="item in querySearch(searchText, key)"
+                  md-item-text="item.display"
+                  md-min-length="0"
+                  md-floating-label="Enter Value">
+                  <md-item-template>
+                     <span md-highlight-text="searchText" md-highlight-flags="^i">{{item.display}}</span>
+                  </md-item-template>
+                  <md-not-found>
+                     Nope
+                     <a ng-click="newState(searchText)">Create a new one!</a>
+                  </md-not-found>
+               </md-autocomplete>
+               <br/>
+         </md-content>
+      </div>
+                                        </div>
+                                        </td>
+                                        </div>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- /.table-responsive -->
+                    </div>
+                    <div class="panel-heading text-center">
+                        <button class="btn btn-outline btn-primary btn-md" ng-click="grabModalVals(key, val)" data-toggle="modal" data-target="#myModal">Save Changes</button>
+                        <button class="btn btn-outline btn-primary btn-md" ng-click="reset()">Reset</button>
+                    </div>
+                </div>
+            </div>
+                <div class="row">
+                    <div class="col-xs-6 col-xs-offset-1">
+                           <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                            <h4 class="modal-title" id="myModalLabel">Confirm Changes</h4>
+                                        </div>
+                                        <div class="modal-body">
+                                            {{message}}
+                                            <li class="list-unstyled" ng-repeat="(key,val) in data track by $index">{{key}}: {{val}}</li>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button ng-if=disabled type="button" class="btn btn-default" data-dismiss="modal">Go Back</button>
+                                            <button ng-if=enabled type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                            <button ng-if=enabled type="button" class="btn btn-primary" data-dismiss="modal" ng-click="saveChanges()">Confirm</button>
+                                        </div>
+                                    </div>
+                                    <!-- /.modal-content -->
+                                </div>
+                                <!-- /.modal-dialog -->
+                            </div>
+                        </form>
+                    </div>
+                </div>                                                    
+            </div>
+        </div>
+    </script>
+    <script type="text/ng-template" id="/jobs.ejs">
+        <div id="custom-page-wrapper">
+            <div class="col-lg-12 text-center" ng-repeat="job in this_job | limitTo:1 track by $index">
+            <h2>Salt job results for {{job.id}}</h2>
+            </div>
+            <br></br>
+            <div class="col-lg-12 panel-group" id="accordian" ng-repeat="job in this_job track by $index">
+                <div ng-if="jobSuccessful(job)" class="panel panel-default">
+                    <div class="panel-heading text-center" data-toggle="collapse" data-parent="#accordian" data-target="#collapse{{$index}}">
+                        <a class ="accordian-toggle">Function: {{job.fun}}&nbsp&nbsp&nbspTimestamp: {{job._stamp}}&nbsp&nbsp&nbspReturn Code: {{job.retcode}}</a>&nbsp<span class="fa fa-caret-down"></span>
+                    </div>
+                    <!-- /.panel-heading -->
+                    <div id="collapse{{$index}}" class="panel-body panel-collapse collapse">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                               <tbody ng-repeat="(key, val) in job track by $index">
+                                    <tr ng-class='{"info":$index%2==0}'>
+                                        <td>{{key}}</td>
+                                        <td ng-if="val[0]==='{'"><pre>{{val}}</pre></td>
+                                        <td style="padding:0px" ng-if="key=='jid'"><a href='#/runs?id={{job.jid}}' ng-click="accessRuns()" style="display:block;padding:10px">{{val}}</a></td>
+                                        <td ng-if="val[0]!=='{' && key!='jid'">{{val}}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- /.table-responsive -->
+                    </div>
+                    <!-- /.panel-body -->
+                </div>
+                <div ng-if="!jobSuccessful(job)" class="panel panel-default panel-danger">
+                    <div class="panel-heading text-center" data-toggle="collapse" data-parent="#accordian" data-target="#collapse{{$index}}">
+                        <a class ="accordian-toggle">Function: {{job.fun}}&nbsp&nbsp&nbspTimestamp: {{job._stamp}}&nbsp&nbsp&nbspReturn Code: {{job.retcode}}</a>&nbsp<span class="fa fa-caret-down"></span>
+                    </div>
+                    <!-- /.panel-heading -->
+                    <div id="collapse{{$index}}" class="panel-body panel-collapse collapse">
+                        <div class="table-responsive">
+                            <table class="table">
+                               <tbody ng-repeat="(key, val) in job track by $index">
+                                    <tr ng-class='{"info":$index%2==0}'>
+                                        <td>{{key}}</td>
+                                        <td ng-if="val[0]==='{'"><pre>{{val}}</pre></td>
+                                        <td style="padding:0px" ng-if="key=='jid'"><a href='#/runs?id={{job.jid}}' ng-click="accessRuns()" style="display:block;padding:10px">{{val}}</a></td>
+                                        <td ng-if="val[0]!=='{' && key!='jid'">{{val}}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- /.table-responsive -->
+                    </div>
+                    <!-- /.panel-body -->
+                </div>
+                <!-- /.panel -->
+            </div>
+        </div>
+    </script>
+    </script>
+    <script type="text/ng-template" id="/runs.ejs">
+        <div id="custom-page-wrapper">
+            <div class="col-lg-12 text-center" ng-repeat="run in runs | limitTo:1 track by $index">
+            <h2>{{run.jid}} Runs</h2>
+            </div>
+            <br></br>
+            <div class="col-lg-12 panel-group" id="accordian" ng-repeat="run in runs track by $index">
+                <div ng-if="runSuccessful(run)" class="panel panel-default">
+                    <div class="panel-heading text-center" data-toggle="collapse" data-parent="#accordian" data-target="#collapse{{$index}}">
+                        <a class ="accordian-toggle">Host: {{run.id}}&nbsp&nbsp&nbspFunction: {{run.fun}}&nbsp&nbsp&nbspTimestamp: {{run._stamp}}&nbsp&nbsp&nbspReturn Code: {{run.retcode}}</a>&nbsp<span class="fa fa-caret-down"></span>
+                    </div>
+                    <!-- /.panel-heading -->
+                    <div id="collapse{{$index}}" class="panel-body panel-collapse collapse">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                               <tbody ng-repeat="(key, val) in run track by $index">
+                                    <tr ng-class='{"info":$index%2==0}'>
+                                        <td>{{key}}</td>
+                                        <td ng-if="val[0]==='{'"><pre>{{val}}</pre></td>
+                                        <td ng-if="key=='jid'">{{val}}</td>
+                                        <td ng-if="val[0]!=='{' && key!='jid'">{{val}}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- /.table-responsive -->
+                    </div>
+                    <!-- /.panel-body -->
+                </div>
+                <div ng-if="!runSuccessful(run)" class="panel panel-default panel-danger">
+                    <div class="panel-heading text-center" data-toggle="collapse" data-parent="#accordian" data-target="#collapse{{$index}}">
+                        <a class ="accordian-toggle">Host: {{run.id}}&nbsp&nbsp&nbspFunction: {{run.fun}}&nbsp&nbsp&nbspTimestamp: {{run._stamp}}&nbsp&nbsp&nbspReturn Code: {{run.retcode}}</a>&nbsp<span class="fa fa-caret-down"></span>
+                    </div>
+                    <!-- /.panel-heading -->
+                    <div id="collapse{{$index}}" class="panel-body panel-collapse collapse">
+                        <div class="table-responsive">
+                            <table class="table">
+                               <tbody ng-repeat="(key, val) in run track by $index">
+                                    <tr ng-class='{"info":$index%2==0}'>
+                                        <td>{{key}}</td>
+                                        <td ng-if="val[0]==='{'"><pre>{{val}}</pre></td>
+                                        <td ng-if="key=='jid'">{{val}}</td>
+                                        <td ng-if="val[0]!=='{' && key!='jid'">{{val}}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- /.table-responsive -->
+                    </div>
+                    <!-- /.panel-body -->
+                </div>
+                <!-- /.panel -->
+            </div>
+        </div>
+    </script>
+</html>
