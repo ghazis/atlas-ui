@@ -1,4 +1,3 @@
-//todo: clear autofill bar once added to list.
 var get_counter = 0;
 var assetsApp = angular.module('assetsApp', ['ui.router', 'ngSanitize', 'ngCsv', 'ngMaterial']);
 
@@ -99,7 +98,10 @@ function($scope, assets, $http, $window, $location, CSV, $timeout, $q, $log) {
 	$scope.newState = newState;
 	$scope.sortType = 'host';
 	$scope.sortReverse = false;
-	$scope.search = '';
+	$scope.searches = {
+		search: '',
+		col_search: ''
+	}
 	$scope.assets = assets.assets;
 	$scope.list_index = [];
 	$scope.modified_rows_index = [];
@@ -126,27 +128,21 @@ function($scope, assets, $http, $window, $location, CSV, $timeout, $q, $log) {
 	     return results;
 	  }
 	}
-	function searchTextChange(text) {
-	  $log.info('Text changed to ' + text);
+	function searchTextChange(text, key) {
+		$scope.master_index = $scope.list_index.indexOf(key);
+		document.getElementById("remBut"+$scope.master_index).disabled = true;
+		document.getElementById("addBut"+$scope.master_index).disabled = false;
+		if($scope.acc_lists[key].indexOf(text)<0 && text != '') {
+			$scope.new_entry = text;
+		}
 	}
 	function selectedItemChange(item={}, key, removeFlag) {
+      document.getElementById("remBut"+$scope.master_index).disabled = true;
+	  document.getElementById("addBut"+$scope.master_index).disabled = false;
 	  $scope.key = key;
 	  $scope.value = item['value'];
 	  $scope.index = $scope.acc_lists[key].indexOf($scope.value);
 	  $scope.limit = 0;
-	  $scope.master_index = $scope.list_index.indexOf($scope.key);
-		try {
-			if(removeFlag===true){
-			    document.getElementById("addBut"+$scope.master_index).disabled = true;
-			    document.getElementById("remBut"+$scope.master_index).disabled = false;
-			}
-			if(removeFlag===false){
-				document.getElementById("remBut"+$scope.master_index).disabled = true;
-				document.getElementById("addBut"+$scope.master_index).disabled = false;
-			}
-		} catch (e) {
-
-		}
 	}
 
 	function loadStates(key) {
@@ -239,7 +235,10 @@ function($scope, assets, $http, $window, $location, CSV, $timeout, $q, $log) {
 		$scope.possible_homepage_fields = $scope.possible_homepage_fields.sort();
 	}
 
-	$scope.addAssets = function(id){
+	$scope.addAssets = function(firstRun){
+		if(firstRun != true){
+			assets.assets = [];
+		}
 	    $http.get('/api/assets/').success(function(data, headers) {
 	    	var max_win_length = 0;
 	    	var max_lin_length = 0;
@@ -470,6 +469,10 @@ function($scope, assets, $http, $window, $location, CSV, $timeout, $q, $log) {
 	}
 
 	$scope.updateVal = function(key, val, index, value, addFlag, removeFlag){
+		if (value == undefined && $scope.new_entry != undefined){
+			value = $scope.new_entry;
+			$scope.new_config_val = true;
+		}
 		$scope.save_status = false;
 		$scope.row_index = $scope.list_index.indexOf(key);
 		if (addFlag === true) {
@@ -478,8 +481,14 @@ function($scope, assets, $http, $window, $location, CSV, $timeout, $q, $log) {
 			document.getElementById("rem").disabled = false;
 			if (value!= undefined && $scope.limit < 1 && $scope.existing_lists[key].indexOf(value)<0){
 				$scope.existing_lists[key].push(value);
-				$scope.acc_lists[key].splice($scope.acc_lists[key].indexOf(value), 1);
+				if($scope.acc_lists[key].indexOf(value)>0){
+					$scope.acc_lists[key].splice($scope.acc_lists[key].indexOf(value), 1);
+				}
 				$scope.limit ++;
+				if($scope.new_config_val == true) {
+					$scope.new_vals = $scope.existing_lists[key].concat($scope.acc_lists[key]);
+					$scope.key = key;
+				}
 			}
 		} else if (removeFlag === true) {
 			$('#rem option').attr('selected', null);
@@ -532,6 +541,22 @@ function($scope, assets, $http, $window, $location, CSV, $timeout, $q, $log) {
 		return $scope.filtered_data;
 	}
 
+	function saveConfigVals(field, vals) {
+	    $http({
+	      method  : 'POST',
+	      url     : '/api/config/',
+	      data    : $.param({
+	    	field_name: angular.toJson(field),
+	    	new_vals: angular.toJson(vals)
+	    }),
+	      headers : {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'} 
+	     })
+	      .success(function(data) {
+	      }).error(function(data){
+	      	// console.log("did not work");
+	      })
+	}
+
 	$scope.saveChanges = function() {
 		$scope.save_status = true;
 		$scope.initial_vals = JSON.stringify($scope.existing_lists);
@@ -554,6 +579,9 @@ function($scope, assets, $http, $window, $location, CSV, $timeout, $q, $log) {
 	        $scope.modified_rows_index = [];
 	        $scope.colorRow(null, null, true);
 	        $scope.reset_buttons();
+	        if($scope.new_config_val == true) {
+	        	saveConfigVals($scope.key, $scope.new_vals);
+	    	}
 		}
 	}
 
@@ -665,15 +693,17 @@ function($scope, assets, $http, $window, $location, CSV, $timeout, $q, $log) {
 
 	//ensures assets are not added to table multiple times by pressing back button
 	if(get_counter === 0){
-		$window.onload = $scope.addAssets();
+		$window.onload = $scope.addAssets(true);
 		get_counter += 1;
-		}
+	} else {
+		$window.onload = $scope.addAssets(false);
+	}
 
 
 	if($scope.this_id && $scope.this_id.length<20){
 		$scope.accessAsset($scope.this_id);
 		$scope.accessJobs();
-	} else if ($scope.this_id && $scope.this_id.length>15){
+	} else if ($scope.this_id && $scope.this_id.length>=20){
 		$scope.accessRuns();
 	}
 	$scope.this_asset = assets.this_asset;

@@ -262,7 +262,7 @@ def set_profiles():
     except ValueError:
         logger.error('error="failed to parse JSON" request request_id="{}" fields="{}" layout="{}"'
                      .format(g.request_id, fields, layout))
-        return "failed to prase JSON paylod", 500
+        return "failed to parse JSON paylod", 500
 
     logger.info('action=update_user_profile user={} fields="{}" layout="{}"'.format(g.user, fields, layout))
     db.profiles.update(
@@ -278,6 +278,26 @@ def get_config():
     for i in db.config.find({}):
         config[i['name']] = i
     return json.dumps(config, indent=1, default=json_util.default)
+
+@app.route("/config/", methods=['POST'])
+def set_config():
+    params = request.form
+    field_name = params.get('field_name', None)
+    new_vals = params.get('new_vals', None)
+    try:
+        field_name = json.loads(field_name)
+        new_vals = json.loads(new_vals)
+    except ValueError:
+        logger.error('error="failed to parse JSON" request request_id="{}" field_name="{}" new_vals="{}"'
+                     .format(g.request_id, new_vals))
+        return "failed to parse JSON paylod", 500
+
+    logger.info('action=update config field values field_name="{}" new_vals="{}"'.format(field_name, new_vals))
+    db.config.update(
+        {'name': field_name}, {'$set': {"values": new_vals}},
+        upsert=False)
+
+    return "OK", 200
 
 
 

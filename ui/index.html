@@ -59,7 +59,7 @@
                 <div class="panel-body">
                     <div class="input-group">
                         <div class="input-group-addon"><i class="fa fa-search"></i></div>
-                        <input type="text" class="form-control" placeholder="Filter Table" ng-model="search">
+                        <input type="text" class="form-control" placeholder="Filter Table" ng-model="searches.search">
                     </div>
                     <br></br>
                     <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#myModal">Add/Remove Fields</button>
@@ -101,11 +101,12 @@
                                         <a href="" ng-click="setSortType(field);">{{field}}</a>
                                         <span ng-show="sortType == field && !sortReverse" class="fa fa-caret-down"></span>
                                         <span ng-show="sortType == field && sortReverse" class="fa fa-caret-up"></span>
+                                        <input type="text" class="form-control input-sm text-center" placeholder="Search" ng-model="searches.col_search[field]">
                                     </th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr ng-repeat="asset in ($parent.filtered_data = (assets | orderBy:sortType:sortReverse | filter:search))">
+                                <tr ng-repeat="asset in ($parent.filtered_data = (assets | orderBy:sortType:sortReverse | filter:searches.search | filter:searches.col_search))">
                                     <td class="text-center col-md-1">{{   }}<a href='#/asset?id={{asset.minion}}'><button type="button" class="btn btn-primary btn-circle"><i class="fa fa-list"></i>
                                     </button></a>
                                     <td ng-repeat='field in homepage_fields'>
@@ -135,7 +136,7 @@
                     {{env}}{{asset.host}}<br>
                 </div>
             </div>
-            <div class="col-lg-6" ng-repeat="asset in this_asset track by $index">
+            <div class="col-lg-4" ng-repeat="asset in this_asset track by $index">
                 <div class="panel panel-default">
                     <div class="panel-heading text-center">
                         Attributes
@@ -173,7 +174,7 @@
             </div>
 
 
-            <div class="col-lg-6" ng-repeat="pillar in this_pillar track by $index">
+            <div class="col-lg-8" ng-repeat="pillar in this_pillar track by $index">
                 <div class="panel panel-default">
                     <div class="panel-heading text-center">
                         Links
@@ -186,6 +187,7 @@
                     </div>
                     <!-- /.panel-body -->
                 </div>
+                <div >
                 <div class="panel panel-default">
                     <div class="panel-heading text-center">
                         Editable Fields
@@ -261,36 +263,32 @@
                                         </div>
                                         </td>
                                         <td>
-                                        <div class="col-xs-8">
+                                        <div class="col-xs-12">
                                             <select required id="add" ng-if="pillar_attrs[key]['type']=='select'" ng-model="selected" ng-click="collectElems(selected, false)" ng-attr-size="{{acc_lists[key].length+1}}" multiple>
                                                 <option disabled value="">-- choose one --</option>
                                                 <option ng-if="pillar_attrs[key]['editable']===false" disabled ng-repeat="item in acc_lists[key] track by $index" value="{&quot;{{item+','+key}}&quot;: {{$index}}}">{{item}}</option>
                                                 <option ng-if="pillar_attrs[key]['editable']" ng-repeat="item in acc_lists[key] track by $index" value="{&quot;{{item+','+key}}&quot;: {{$index}}}">{{item}}</option>
                                             </select>
                                             <input ng-show="pillar_attrs[key]['type']=='text'" size="15" type="text" ng-model="strvalue">
-      <div layout="column" ng-cloak ng-if="pillar_attrs[key]['type']=='autofill'">
-         <md-content class="md-padding">
-               <md-autocomplete
-                  md-no-cache="noCache"
-                  md-selected-item="searchedItem"
-                  md-search-text-change="searchTextChange(searchText)"
-                  md-search-text="searchText"
-                  md-selected-item-change="selectedItemChange(item, key, false)"
-                  md-items="item in querySearch(searchText, key)"
-                  md-item-text="item.display"
-                  md-min-length="0"
-                  md-floating-label="Enter Value">
-                  <md-item-template>
-                     <span md-highlight-text="searchText" md-highlight-flags="^i">{{item.display}}</span>
-                  </md-item-template>
-                  <md-not-found>
-                     Nope
-                     <a ng-click="newState(searchText)">Create a new one!</a>
-                  </md-not-found>
-               </md-autocomplete>
-               <br/>
-         </md-content>
-      </div>
+                                            <div layout="column" ng-cloak ng-if="pillar_attrs[key]['type']=='autofill'">
+                                             <md-content class="md-padding">
+                                                   <md-autocomplete
+                                                      md-no-cache="noCache"
+                                                      md-selected-item="searchedItem"
+                                                      md-search-text-change="searchTextChange(searchText, key)"
+                                                      md-search-text="searchText"
+                                                      md-selected-item-change="selectedItemChange(item, key, false)"
+                                                      md-items="item in querySearch(searchText, key)"
+                                                      md-item-text="item.display"
+                                                      md-min-length="0"
+                                                      md-floating-label="Enter Value">
+                                                      <md-item-template>
+                                                         <span md-highlight-text="searchText" md-highlight-flags="^i">{{item.display}}</span>
+                                                      </md-item-template>
+                                                   </md-autocomplete>
+                                                   <br/>
+                                             </md-content>
+                                            </div>
                                         </div>
                                         </td>
                                         </div>
@@ -304,6 +302,7 @@
                         <button class="btn btn-outline btn-primary btn-md" ng-click="grabModalVals(key, val)" data-toggle="modal" data-target="#myModal">Save Changes</button>
                         <button class="btn btn-outline btn-primary btn-md" ng-click="reset()">Reset</button>
                     </div>
+                </div>
                 </div>
             </div>
                 <div class="row">
